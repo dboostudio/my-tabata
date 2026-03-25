@@ -9,6 +9,9 @@ export class TabataTimer {
     constructor(config = DEFAULT_CONFIG) {
         this.intervalId = null;
         this.listeners = [];
+        // 드리프트 수정: 절대 타임스탬프 기반 카운트다운
+        this.phaseStartTime = 0;
+        this.phaseStartRemaining = 0;
         this.state = {
             phase: 'idle',
             currentRound: 0,
@@ -41,6 +44,9 @@ export class TabataTimer {
     resume() {
         if (this.state.isRunning || this.state.phase === 'idle' || this.state.phase === 'complete')
             return;
+        // 재개 시 절대 타임스탬프를 현재 남은 시간 기준으로 재설정
+        this.phaseStartTime = Date.now();
+        this.phaseStartRemaining = this.state.timeRemaining;
         this.state.isRunning = true;
         this._startTick();
     }
@@ -76,16 +82,25 @@ export class TabataTimer {
                 break;
             default: this.state.timeRemaining = 0;
         }
+        // 페이즈 시작 시점 절대 타임스탬프 기록
+        this.phaseStartTime = Date.now();
+        this.phaseStartRemaining = this.state.timeRemaining;
         this._emit({ type: 'PHASE_CHANGE', phase, round });
         this._startTick();
     }
     _startTick() {
         this._clearInterval();
-        this.intervalId = setInterval(() => this._tick(), 1000);
+        this.intervalId = setInterval(() => this._tick(), 250);
     }
     _tick() {
-        this.state.timeRemaining -= 1;
-        this._emit({ type: 'TICK', timeRemaining: this.state.timeRemaining });
+        // 절대 타임스탬프 기반으로 남은 시간 계산 (setInterval 드리프트 제거)
+        const elapsed = Math.floor((Date.now() - this.phaseStartTime) / 1000);
+        const newRemaining = Math.max(0, this.phaseStartRemaining - elapsed);
+        // 표시값이 변경됐을 때만 TICK 이벤트 발생
+        if (newRemaining !== this.state.timeRemaining) {
+            this.state.timeRemaining = newRemaining;
+            this._emit({ type: 'TICK', timeRemaining: this.state.timeRemaining });
+        }
         if (this.state.timeRemaining > 0)
             return;
         // 페이즈 전환
