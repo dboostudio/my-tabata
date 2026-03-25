@@ -52,6 +52,100 @@ let voiceEnabled = false
 let workoutStartTime: Date | null = null
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54  // r=54
 
+// ── Wake Lock ────────────────────────────────────────────
+
+let wakeLock: WakeLockSentinel | null = null
+
+async function acquireWakeLock(): Promise<void> {
+  if (!('wakeLock' in navigator)) return
+  try {
+    wakeLock = await navigator.wakeLock.request('screen')
+    wakeLock.addEventListener('release', () => { wakeLock = null })
+  } catch {
+    // 권한 거부 또는 미지원 — 조용히 무시
+  }
+}
+
+function releaseWakeLock(): void {
+  if (wakeLock) {
+    wakeLock.release().catch(() => {})
+    wakeLock = null
+  }
+}
+
+// ── 페이지 비가시성 처리 ─────────────────────────────────
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // 탭이 백그라운드로: 실행 중이면 자동 일시정지
+    const state = timer.getState()
+    if (state.isRunning) {
+      timer.pause()
+      stopCircleAnimation()
+      btnStart.textContent = '재개'
+    }
+  } else {
+    // 탭이 포어그라운드로: Wake Lock 재획득 (실행 중이던 경우)
+    const state = timer.getState()
+    if (!state.isRunning && state.phase !== 'idle' && state.phase !== 'complete') {
+      // 일시정지 상태 유지 (자동 재개하지 않음 — QA 결정)
+    }
+    const running = timer.getState().isRunning
+    if (running) {
+      acquireWakeLock()
+    }
+  }
+})
+
+// ── 탭 타이틀 업데이트 ───────────────────────────────────
+
+const DEFAULT_TITLE = 'TabataGo — 타바타 타이머'
+
+function updateTabTitle(phase: Phase, timeRemaining: number): void {
+  switch (phase) {
+    case 'work':
+      document.title = `운동! ${timeRemaining}s | TabataGo`
+      break
+    case 'rest':
+      document.title = `휴식 ${timeRemaining}s | TabataGo`
+      break
+    case 'countdown':
+      document.title = `준비 ${timeRemaining}s | TabataGo`
+      break
+    case 'complete':
+      document.title = '완료! 🎉 | TabataGo'
+      break
+    default:
+      document.title = DEFAULT_TITLE
+  }
+}
+
+// ── 키보드 단축키 ────────────────────────────────────────
+
+document.addEventListener('keydown', (e: KeyboardEvent) => {
+  // 입력 필드에 포커스된 경우 단축키 무시
+  const active = document.activeElement
+  if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+
+  switch (e.key) {
+    case ' ':
+    case 'Spacebar':
+      e.preventDefault()
+      btnStart.click()
+      break
+    case 'r':
+    case 'R':
+      e.preventDefault()
+      btnReset.click()
+      break
+    case 'Escape':
+      settingsPanel.classList.remove('open')
+      historyPanel.classList.remove('open')
+      proModal.classList.remove('open')
+      break
+  }
+})
+
 // ── rAF 기반 원형 프로그레스 애니메이션 (60fps) ──────────
 
 let rafId: number | null = null
@@ -94,6 +188,18 @@ function getPhaseDuration(config: ReturnType<typeof timer.getState>['config'], p
     case 'rest':      return config.restDuration
     default:          return 1
   }
+}
+
+// ── 페이즈 전환 펄스 애니메이션 ─────────────────────────
+
+function triggerRingPulse(): void {
+  timerCircle.classList.remove('ring-pulse')
+  // 리플로우를 강제하여 애니메이션이 재실행되도록
+  void (timerCircle as unknown as HTMLElement & { offsetWidth: number }).offsetWidth
+  timerCircle.classList.add('ring-pulse')
+  timerCircle.addEventListener('animationend', () => {
+    timerCircle.classList.remove('ring-pulse')
+  }, { once: true })
 }
 
 // ── 라운드 도트 렌더링 ────────────────────────────────────
@@ -139,6 +245,14 @@ timer.on(event => {
       resetCircleForPhase(state.timeRemaining, getPhaseDuration(state.config, phase))
     }
 
+    // 페이즈 전환 시 링 펄스 애니메이션 (idle 제외)
+    if (phase !== 'idle') {
+      triggerRingPulse()
+    }
+
+    // 탭 타이틀 업데이트
+    updateTabTitle(phase, state.timeRemaining)
+
     // 오디오
     if (phase === 'work')  audio.workStart()
     if (phase === 'rest')  audio.restStart()
@@ -163,6 +277,9 @@ timer.on(event => {
     const { phase, timeRemaining } = state
     timerNumber.textContent = String(timeRemaining)
 
+    // 탭 타이틀 업데이트
+    updateTabTitle(phase, timeRemaining)
+
     // 카운트다운 틱음
     if (phase === 'countdown') {
       audio.countdown(timeRemaining)
@@ -175,6 +292,8 @@ timer.on(event => {
     if (voiceEnabled && premium.isPro()) speech.complete()
     timerNumber.textContent = '🎉'
     btnStart.textContent = '다시 시작'
+    updateTabTitle('complete', 0)
+    releaseWakeLock()
 
     // 운동 기록 저장 (Pro)
     if (premium.isPro() && workoutStartTime) {
@@ -198,21 +317,25 @@ btnStart.addEventListener('click', () => {
   if (state.phase === 'complete' || state.phase === 'idle') {
     timer.reset()
     timer.start()
+    acquireWakeLock()
   } else if (state.isRunning) {
     timer.pause()
     stopCircleAnimation()
     btnStart.textContent = '재개'
+    releaseWakeLock()
   } else {
     timer.resume()
     const s = timer.getState()
     startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase))
     btnStart.textContent = '일시정지'
+    acquireWakeLock()
   }
 })
 
 btnReset.addEventListener('click', () => {
   timer.reset()
   stopCircleAnimation()
+  releaseWakeLock()
   const cfg = timer.getState().config
   timerNumber.textContent = String(cfg.workDuration)
   phaseLabel.textContent = '준비'
@@ -220,6 +343,7 @@ btnReset.addEventListener('click', () => {
   btnStart.textContent = '시작'
   document.documentElement.style.setProperty('--phase-color', 'var(--color-idle)')
   setCircleOffset(1, 1)
+  document.title = DEFAULT_TITLE
 })
 
 // 설정 패널

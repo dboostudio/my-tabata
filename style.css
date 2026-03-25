@@ -408,6 +408,17 @@ input  { font-family: inherit; }
   margin-left: 4px;
 }
 
+/* ── 페이즈 전환 펄스 애니메이션 ── */
+@keyframes ring-pulse {
+  0%   { stroke-width: 8;  filter: drop-shadow(0 0 0px var(--phase-color)); }
+  30%  { stroke-width: 12; filter: drop-shadow(0 0 12px var(--phase-color)); }
+  100% { stroke-width: 8;  filter: drop-shadow(0 0 0px var(--phase-color)); }
+}
+
+.ring-progress.ring-pulse {
+  animation: ring-pulse 0.4s ease-out forwards;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 480px) {
   .timer-container { gap: 20px; }
