@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FF4D4D" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>TabataGo — 타바타 타이머</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<header class="header">
+  <div class="logo">TabataGo</div>
+  <div class="header-actions">
+    <button id="btn-voice" title="음성 안내" aria-label="음성 안내 토글">🔈</button>
+    <button id="btn-history" title="운동 기록" aria-label="운동 기록">📊 <span class="pro-badge">Pro</span></button>
+    <button id="btn-settings" title="설정" aria-label="설정">⚙️</button>
+  </div>
+</header>
+
+<!-- ── 메인 타이머 ── -->
+<main class="timer-container">
+
+  <!-- 원형 프로그레스 -->
+  <div class="circle-wrapper">
+    <svg class="progress-ring" viewBox="0 0 120 120">
+      <circle class="ring-bg" cx="60" cy="60" r="54" />
+      <circle id="timer-circle" class="ring-progress" cx="60" cy="60" r="54" />
+    </svg>
+    <div class="timer-inner">
+      <div id="phase-label" class="phase-label">준비</div>
+      <div id="timer-number" class="timer-number">20</div>
+      <div id="round-label" class="round-label">0 / 8</div>
+    </div>
+  </div>
+
+  <!-- 라운드 도트 -->
+  <div id="round-dots" class="round-dots"></div>
+
+  <!-- 컨트롤 버튼 -->
+  <div class="controls">
+    <button id="btn-reset" class="btn-secondary" aria-label="초기화">↺</button>
+    <button id="btn-start" class="btn-primary" aria-label="시작">시작</button>
+  </div>
+
+</main>
+
+<!-- ── 설정 패널 ── -->
+<div id="settings-panel" class="panel">
+  <div class="panel-header">
+    <h2>설정</h2>
+    <button id="btn-close-settings" aria-label="닫기">✕</button>
+  </div>
+  <div class="panel-body">
+
+    <!-- 프리셋 -->
+    <section class="section">
+      <h3>워크아웃 프리셋 <span class="pro-badge">Pro</span></h3>
+      <div id="preset-grid" class="preset-grid"></div>
+    </section>
+
+    <!-- 커스텀 설정 -->
+    <section class="section">
+      <h3>커스텀 인터벌 <span class="pro-badge">Pro</span></h3>
+      <div class="input-group">
+        <label>운동 시간 (초)
+          <input id="input-work" type="number" min="5" max="300" value="20" />
+        </label>
+        <label>휴식 시간 (초)
+          <input id="input-rest" type="number" min="3" max="120" value="10" />
+        </label>
+        <label>라운드 수
+          <input id="input-rounds" type="number" min="1" max="20" value="8" />
+        </label>
+      </div>
+      <button id="btn-apply-config" class="btn-outline">적용</button>
+    </section>
+
+    <!-- Pro 업그레이드 배너 -->
+    <div class="pro-banner" id="pro-banner">
+      <p>🔓 커스텀 인터벌, 프리셋, 음성 안내, 운동 기록을 사용하세요</p>
+      <button class="btn-primary" onclick="document.getElementById('pro-modal').classList.add('open')">
+        Pro로 업그레이드 — $4.99
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 기록 패널 ── -->
+<div id="history-panel" class="panel">
+  <div class="panel-header">
+    <h2>운동 기록</h2>
+    <button id="btn-close-history" aria-label="닫기">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div id="stats-total" class="stat-number">0</div>
+        <div class="stat-label">총 운동</div>
+      </div>
+      <div class="stat-card">
+        <div id="stats-week" class="stat-number">0</div>
+        <div class="stat-label">이번 주</div>
+      </div>
+      <div class="stat-card">
+        <div id="stats-streak" class="stat-number">0</div>
+        <div class="stat-label">연속 일수</div>
+      </div>
+    </div>
+    <div id="history-list" class="history-list"></div>
+  </div>
+</div>
+
+<!-- ── Pro 업그레이드 모달 ── -->
+<div id="pro-modal" class="modal-overlay">
+  <div class="modal">
+    <h2>🔥 TabataGo Pro</h2>
+    <ul class="pro-features">
+      <li>✅ 커스텀 인터벌 (운동/휴식 시간, 라운드)</li>
+      <li>✅ 8가지 워크아웃 프리셋</li>
+      <li>✅ 음성 안내</li>
+      <li>✅ 운동 기록 & 통계</li>
+      <li>✅ 3가지 컬러 테마</li>
+      <li>✅ 화면 켜짐 유지</li>
+    </ul>
+    <div class="modal-price">단 <strong>$4.99</strong> 일회성 결제</div>
+    <button id="btn-buy-pro" class="btn-primary btn-large">구매하기</button>
+    <button id="btn-close-pro" class="btn-ghost">나중에</button>
+  </div>
+</div>
+
+<!-- ── 패널 오버레이 ── -->
+<div class="overlay" onclick="document.querySelectorAll('.panel,.modal-overlay').forEach(el=>el.classList.remove('open'))"></div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
