@@ -1,7 +1,7 @@
 // 📄 src/main.ts — 앱 초기화 및 UI 바인딩
 
 import { TabataTimer, DEFAULT_CONFIG, type Phase, type TimerConfig } from './timer'
-import { AudioManager } from './audio'
+import { AudioManager, type VolumeLevel } from './audio'
 import { SpeechManager } from './speech'
 import { PremiumManager } from './premium'
 import { WorkoutStorage } from './storage'
@@ -37,6 +37,8 @@ const btnVoice        = $<HTMLButtonElement>('#btn-voice')
 const statsTotal      = $('#stats-total')
 const statsWeek       = $('#stats-week')
 const statsStreak     = $('#stats-streak')
+const elapsedLabel    = $('#elapsed-label')
+const summaryCard     = $('#summary-card')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
 
@@ -46,11 +48,114 @@ const speech   = new SpeechManager()
 const premium  = new PremiumManager()
 const storage  = new WorkoutStorage()
 
+// ── 설정 저장/불러오기 (Feature C) ───────────────────────
+
+const SETTINGS_KEY = 'tabatago_settings'
+
+interface SavedSettings {
+  workDuration: number
+  restDuration: number
+  totalRounds: number
+}
+
+function saveSettings(cfg: SavedSettings): void {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg))
+  } catch {
+    // localStorage 미지원 환경 무시
+  }
+}
+
+function loadSettings(): SavedSettings | null {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<SavedSettings>
+    const work   = Math.max(5,  Math.min(300, Number(parsed.workDuration)  || 0))
+    const rest   = Math.max(3,  Math.min(120, Number(parsed.restDuration)  || 0))
+    const rounds = Math.max(1,  Math.min(20,  Number(parsed.totalRounds)   || 0))
+    if (!work || !rest || !rounds) return null
+    return { workDuration: work, restDuration: rest, totalRounds: rounds }
+  } catch {
+    return null
+  }
+}
+
 // ── 상태 ─────────────────────────────────────────────────
 
 let voiceEnabled = false
 let workoutStartTime: Date | null = null
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54  // r=54
+
+// ── 경과 시간 표시 (Feature A) ────────────────────────────
+
+let elapsedIntervalId: ReturnType<typeof setInterval> | null = null
+
+function startElapsedTimer(): void {
+  if (elapsedIntervalId !== null) clearInterval(elapsedIntervalId)
+  elapsedLabel.style.display = 'block'
+  elapsedIntervalId = setInterval(() => {
+    if (!workoutStartTime) return
+    const seconds = Math.floor((Date.now() - workoutStartTime.getTime()) / 1000)
+    elapsedLabel.textContent = '경과 ' + formatDuration(seconds)
+  }, 500)
+}
+
+function stopElapsedTimer(): void {
+  if (elapsedIntervalId !== null) {
+    clearInterval(elapsedIntervalId)
+    elapsedIntervalId = null
+  }
+  elapsedLabel.style.display = 'none'
+  elapsedLabel.textContent = ''
+}
+
+function formatDuration(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  if (m === 0) return `${s}s`
+  if (s === 0) return `${m}m`
+  return `${m}m ${s}s`
+}
+
+// ── 완료 요약 카드 (Feature B) ────────────────────────────
+
+function showSummaryCard(rounds: number, durationSeconds: number, workDuration: number): void {
+  stopCircleAnimation()
+  elapsedLabel.style.display = 'none'
+  timerNumber.style.display = 'none'
+  phaseLabel.style.display = 'none'
+  roundLabel.style.display = 'none'
+
+  const avgWork = workDuration  // each round is the same work duration
+  summaryCard.innerHTML = `
+    <div class="summary-emoji">🎉</div>
+    <div class="summary-title">운동 완료!</div>
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-value">${rounds}</span>
+        <span class="summary-stat-label">완료 라운드</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${formatDuration(durationSeconds)}</span>
+        <span class="summary-stat-label">총 소요 시간</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${avgWork}s</span>
+        <span class="summary-stat-label">라운드당 운동</span>
+      </div>
+    </div>
+  `
+  summaryCard.classList.add('visible')
+}
+
+function hideSummaryCard(): void {
+  summaryCard.classList.remove('visible')
+  summaryCard.innerHTML = ''
+  timerNumber.style.display = ''
+  phaseLabel.style.display = ''
+  roundLabel.style.display = ''
+}
 
 // ── Wake Lock ────────────────────────────────────────────
 
@@ -257,6 +362,12 @@ timer.on(event => {
     if (phase === 'work')  audio.workStart()
     if (phase === 'rest')  audio.restStart()
 
+    // 햅틱 피드백 (모바일)
+    if ('vibrate' in navigator) {
+      if (phase === 'work') navigator.vibrate(100)
+      if (phase === 'rest') navigator.vibrate(50)
+    }
+
     // 음성 안내 (Pro)
     if (voiceEnabled && premium.isPro()) {
       if (phase === 'work') {
@@ -266,8 +377,11 @@ timer.on(event => {
       if (phase === 'rest') speech.restStart()
     }
 
-    // 운동 시작 시간 기록
-    if (phase === 'work' && round === 1) workoutStartTime = new Date()
+    // 운동 시작 시간 기록 + 경과 타이머 시작
+    if (phase === 'work' && round === 1) {
+      workoutStartTime = new Date()
+      startElapsedTimer()
+    }
 
     // 버튼 상태
     btnStart.textContent = phase === 'complete' ? '다시 시작' : '일시정지'
@@ -290,20 +404,25 @@ timer.on(event => {
   if (event.type === 'COMPLETE') {
     audio.complete()
     if (voiceEnabled && premium.isPro()) speech.complete()
-    timerNumber.textContent = '🎉'
-    btnStart.textContent = '다시 시작'
+    stopElapsedTimer()
     updateTabTitle('complete', 0)
     releaseWakeLock()
 
+    // 완료 요약 카드 표시 (Feature B)
+    const { config } = state
+    const durationSeconds = workoutStartTime
+      ? Math.round((Date.now() - workoutStartTime.getTime()) / 1000)
+      : (config.workDuration + config.restDuration) * config.totalRounds + config.countdownDuration
+    showSummaryCard(config.totalRounds, durationSeconds, config.workDuration)
+
     // 운동 기록 저장 (Pro)
     if (premium.isPro() && workoutStartTime) {
-      const { config } = state
       storage.saveWorkout({
         date: new Date().toISOString(),
         rounds: config.totalRounds,
         workDuration: config.workDuration,
         restDuration: config.restDuration,
-        durationSeconds: Math.round((Date.now() - workoutStartTime.getTime()) / 1000),
+        durationSeconds,
       })
     }
     workoutStartTime = null
@@ -315,6 +434,7 @@ timer.on(event => {
 btnStart.addEventListener('click', () => {
   const state = timer.getState()
   if (state.phase === 'complete' || state.phase === 'idle') {
+    hideSummaryCard()
     timer.reset()
     timer.start()
     acquireWakeLock()
@@ -335,6 +455,8 @@ btnStart.addEventListener('click', () => {
 btnReset.addEventListener('click', () => {
   timer.reset()
   stopCircleAnimation()
+  stopElapsedTimer()
+  hideSummaryCard()
   releaseWakeLock()
   const cfg = timer.getState().config
   timerNumber.textContent = String(cfg.workDuration)
@@ -358,18 +480,30 @@ btnHistory.addEventListener('click', () => {
 })
 btnCloseHistory.addEventListener('click', () => historyPanel.classList.remove('open'))
 
-// 소리 토글 (비프음 항상 + 음성 안내는 Pro)
+// ── 볼륨 토글 (Feature D: 3단계) ────────────────────────
+
+const VOLUME_ICONS: Record<VolumeLevel, string>  = { 0: '🔇', 1: '🔈', 2: '🔊' }
+const VOLUME_TITLES: Record<VolumeLevel, string> = { 0: '소리 꺼짐', 1: '소리 작게', 2: '소리 크게' }
+const VOLUME_CYCLE: VolumeLevel[] = [2, 1, 0]  // 클릭할 때마다 high→low→off→high
+
 btnVoice.addEventListener('click', () => {
-  const soundOn = !audio.isEnabled()
-  audio.setEnabled(soundOn)
-  // 음성 안내는 Pro 전용
-  if (premium.isPro()) {
-    voiceEnabled = soundOn
-    speech.setEnabled(soundOn)
+  const current = audio.getVolume()
+  const nextIndex = (VOLUME_CYCLE.indexOf(current) + 1) % VOLUME_CYCLE.length
+  const next = VOLUME_CYCLE[nextIndex]!
+  audio.setVolume(next)
+
+  // 음성 안내: 볼륨이 0이 되면 끄고, 0에서 올라오면 Pro 여부에 따라 켜기
+  if (next === 0) {
+    voiceEnabled = false
+    speech.setEnabled(false)
+  } else if (premium.isPro()) {
+    voiceEnabled = true
+    speech.setEnabled(true)
   }
-  btnVoice.textContent = soundOn ? '🔈' : '🔇'
-  btnVoice.classList.toggle('active', soundOn)
-  btnVoice.title = soundOn ? '소리 켜짐' : '소리 꺼짐'
+
+  btnVoice.textContent = VOLUME_ICONS[next]
+  btnVoice.classList.toggle('active', next > 0)
+  btnVoice.title = VOLUME_TITLES[next]
 })
 
 // Pro 모달
@@ -390,6 +524,8 @@ btnApplyConfig.addEventListener('click', () => {
   roundLabel.textContent = `0 / ${config.totalRounds}`
   renderRoundDots(0, config.totalRounds)
   btnStart.textContent = '시작'
+  // 설정 저장 (Feature C)
+  saveSettings({ workDuration: config.workDuration, restDuration: config.restDuration, totalRounds: config.totalRounds })
   settingsPanel.classList.remove('open')
 })
 
@@ -399,6 +535,9 @@ function renderPresets(): void {
   const freeId = 'tabata-classic'
   presetGrid.innerHTML = PRESETS.map(p => {
     const locked = !premium.isPro() && p.id !== freeId
+    // Feature A: 총 소요 시간 배지
+    const totalSecs = (p.config.workDuration + p.config.restDuration) * p.config.totalRounds + p.config.countdownDuration
+    const totalBadge = formatDuration(totalSecs)
     return `
     <button class="preset-btn"
             data-id="${p.id}"
@@ -410,6 +549,7 @@ function renderPresets(): void {
         ${locked ? '<span class="lock-icon">🔒</span>' : ''}
       </div>
       <span class="preset-description">${p.description}</span>
+      ${p.id !== 'custom' ? `<span class="preset-duration">총 ${totalBadge}</span>` : ''}
     </button>`
   }).join('')
 
@@ -433,6 +573,8 @@ function renderPresets(): void {
       roundLabel.textContent = `0 / ${preset.config.totalRounds}`
       renderRoundDots(0, preset.config.totalRounds)
       btnStart.textContent = '시작'
+      // 설정 저장 (Feature C)
+      saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds })
       settingsPanel.classList.remove('open')
     })
   })
@@ -485,6 +627,18 @@ function init(): void {
   timerCircle.style.strokeDashoffset = String(0)
   setCircleOffset(1, 1)
 
+  // Feature C: 저장된 설정 불러오기
+  const saved = loadSettings()
+  if (saved && premium.isPro()) {
+    const config: TimerConfig = {
+      workDuration: saved.workDuration,
+      restDuration: saved.restDuration,
+      totalRounds: saved.totalRounds,
+      countdownDuration: 3,
+    }
+    timer.updateConfig(config)
+  }
+
   // 초기값 표시
   const cfg = timer.getState().config
   timerNumber.textContent = String(cfg.workDuration)
@@ -493,6 +647,13 @@ function init(): void {
   inputRest.value   = String(cfg.restDuration)
   inputRounds.value = String(cfg.totalRounds)
   renderRoundDots(0, cfg.totalRounds)
+
+  // 초기 볼륨 버튼 상태
+  const vol = audio.getVolume()
+  btnVoice.textContent = VOLUME_ICONS[vol]
+  btnVoice.title = VOLUME_TITLES[vol]
+  btnVoice.classList.toggle('active', vol > 0)
+
   renderPresets()
   updateProUI()
 }
