@@ -80,6 +80,13 @@ export class TabataTimer {
     this._startTick()
   }
 
+  // 카운트다운 페이즈에서 즉시 운동 페이즈로 스킵 (Sprint 4 Feature B)
+  skipCountdown(): void {
+    if (this.state.phase !== 'countdown') return
+    this._clearInterval()
+    this._enterPhase('work', 1)
+  }
+
   reset(): void {
     this._clearInterval()
     this.state = {

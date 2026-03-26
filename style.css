@@ -8,6 +8,7 @@
   --phase-color:      var(--color-idle);
 
   --bg:         #1a1a2e;
+  --bg-tint:    transparent;
   --surface:    #16213e;
   --surface2:   #0f3460;
   --text:       #e0e0e0;
@@ -21,10 +22,11 @@
 
 html, body {
   height: 100%;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 90%, var(--bg-tint));
   color: var(--text);
   font-family: var(--font);
   overflow-x: hidden;
+  transition: background 0.6s ease;
 }
 
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
@@ -586,6 +588,96 @@ input  { font-family: inherit; }
 .onboarding-tooltip.dismissing {
   animation: tooltip-fade-out 0.3s ease-in forwards;
 }
+
+/* ── 인터벌 설정 표시 (Sprint 4 Feature A) ── */
+.interval-display {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+  opacity: 0.75;
+}
+
+/* ── 완료 스트릭 배지 (Sprint 4 Feature D) ── */
+.summary-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-work);
+  background: color-mix(in srgb, var(--color-work) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-work) 40%, transparent);
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ── 기록 삭제 영역 (Sprint 4 Feature F) ── */
+.history-delete-area {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-history-delete {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--surface2);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.btn-history-delete:hover {
+  color: var(--color-work);
+  border-color: var(--color-work);
+  background: color-mix(in srgb, var(--color-work) 10%, transparent);
+}
+
+.history-delete-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--surface2);
+  width: 100%;
+}
+
+.history-delete-warning {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.history-delete-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-delete-confirm {
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--color-work);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: opacity 0.2s;
+}
+
+.btn-delete-confirm:hover { opacity: 0.85; }
+
+.btn-delete-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.btn-delete-cancel:hover { color: var(--text); }
 
 /* ── 반응형 ── */
 @media (max-width: 480px) {

@@ -30,14 +30,16 @@
 
   <!-- 원형 프로그레스 -->
   <div class="circle-wrapper">
-    <svg class="progress-ring" viewBox="0 0 120 120">
+    <svg class="progress-ring" viewBox="0 0 120 120"
+         role="img" id="progress-ring-svg" aria-label="타바타 타이머 진행 원">
       <circle class="ring-bg" cx="60" cy="60" r="54" />
       <circle id="timer-circle" class="ring-progress" cx="60" cy="60" r="54" />
     </svg>
     <div class="timer-inner">
-      <div id="phase-label" class="phase-label">준비</div>
-      <div id="timer-number" class="timer-number">20</div>
-      <div id="round-label" class="round-label">0 / 8</div>
+      <div id="phase-label" class="phase-label" aria-live="polite">준비</div>
+      <div id="timer-number" class="timer-number" role="timer" aria-live="off">20</div>
+      <div id="round-label" class="round-label" aria-live="polite">0 / 8</div>
+      <div id="interval-display" class="interval-display">20s 운동 / 10s 휴식</div>
       <div id="elapsed-label" class="elapsed-label" style="display:none"></div>
       <div id="next-phase-label" class="next-phase-label" style="display:none"></div>
       <div id="summary-card" class="summary-card"></div>
@@ -123,6 +125,7 @@
       </div>
     </div>
     <div id="history-list" class="history-list"></div>
+    <div id="history-delete-area" class="history-delete-area"></div>
   </div>
 </div>
 

@@ -42,6 +42,9 @@ const summaryCard       = $('#summary-card')
 const overallProgressFill = $<HTMLDivElement>('#overall-progress-fill')
 const nextPhaseLabel    = $('#next-phase-label')
 const onboardingTooltip = $('#onboarding-tooltip')
+const intervalDisplay   = $('#interval-display')
+const progressRingSvg   = $('#progress-ring-svg')
+const historyDeleteArea = $('#history-delete-area')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
 
@@ -89,6 +92,38 @@ function loadSettings(): SavedSettings | null {
 let voiceEnabled = false
 let workoutStartTime: Date | null = null
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54  // r=54
+
+// ── 인터벌 설정 표시 (Sprint 4 Feature A) ─────────────────
+function updateIntervalDisplay(workDuration: number, restDuration: number): void {
+  intervalDisplay.textContent = `${workDuration}s 운동 / ${restDuration}s 휴식`
+}
+
+// ── 페이즈별 배경 색상 틴트 (Sprint 4 Feature C) ──────────
+function setBodyTint(phase: Phase): void {
+  const tintMap: Record<Phase, string> = {
+    idle:      'transparent',
+    countdown: 'transparent',
+    work:      '#FF4D4D',
+    rest:      '#4DABF7',
+    complete:  'transparent',
+  }
+  document.documentElement.style.setProperty('--bg-tint', tintMap[phase])
+}
+
+// ── ARIA SVG 레이블 업데이트 (Sprint 4 Feature E) ─────────
+function updateSvgAriaLabel(phase: Phase, timeRemaining: number, round: number, totalRounds: number): void {
+  const phaseNames: Record<Phase, string> = {
+    idle:      '대기',
+    countdown: '준비 카운트다운',
+    work:      '운동',
+    rest:      '휴식',
+    complete:  '완료',
+  }
+  const label = phase === 'idle' || phase === 'complete'
+    ? `타바타 타이머 — ${phaseNames[phase]}`
+    : `타바타 타이머 — ${phaseNames[phase]} ${timeRemaining}초, ${round}/${totalRounds} 라운드`
+  progressRingSvg.setAttribute('aria-label', label)
+}
 
 // ── 전체 진행 바 (Sprint 3 Feature A) ────────────────────
 function updateOverallProgress(currentRound: number, totalRounds: number): void {
@@ -207,19 +242,24 @@ function formatDuration(totalSeconds: number): string {
   return `${m}m ${s}s`
 }
 
-// ── 완료 요약 카드 (Feature B) ────────────────────────────
+// ── 완료 요약 카드 (Feature B + Sprint 4 Feature D: 스트릭 배지) ──
 
-function showSummaryCard(rounds: number, durationSeconds: number, workDuration: number): void {
+function showSummaryCard(rounds: number, durationSeconds: number, workDuration: number, streak: number): void {
   stopCircleAnimation()
   elapsedLabel.style.display = 'none'
   timerNumber.style.display = 'none'
   phaseLabel.style.display = 'none'
   roundLabel.style.display = 'none'
+  intervalDisplay.style.display = 'none'
 
   const avgWork = workDuration  // each round is the same work duration
+  const streakBadge = streak >= 3
+    ? `<div class="summary-badge">🔥 ${streak}일 연속!</div>`
+    : ''
   summaryCard.innerHTML = `
     <div class="summary-emoji">🎉</div>
     <div class="summary-title">운동 완료!</div>
+    ${streakBadge}
     <div class="summary-stats">
       <div class="summary-stat">
         <span class="summary-stat-value">${rounds}</span>
@@ -244,6 +284,7 @@ function hideSummaryCard(): void {
   timerNumber.style.display = ''
   phaseLabel.style.display = ''
   roundLabel.style.display = ''
+  intervalDisplay.style.display = ''
 }
 
 // ── Wake Lock ────────────────────────────────────────────
@@ -449,6 +490,12 @@ timer.on(event => {
     phaseLabel.textContent = label
     document.documentElement.style.setProperty('--phase-color', color)
 
+    // 페이즈별 배경 색상 틴트 (Sprint 4 Feature C)
+    setBodyTint(phase)
+
+    // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
+    updateSvgAriaLabel(phase, state.timeRemaining, round, state.config.totalRounds)
+
     // 라운드 표시
     if (phase === 'work' || phase === 'rest') {
       roundLabel.textContent = `${round} / ${state.config.totalRounds}`
@@ -523,6 +570,9 @@ timer.on(event => {
     // 탭 타이틀 업데이트
     updateTabTitle(phase, timeRemaining)
 
+    // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
+    updateSvgAriaLabel(phase, timeRemaining, state.currentRound, state.config.totalRounds)
+
     // 카운트다운 틱음
     if (phase === 'countdown') {
       audio.countdown(timeRemaining)
@@ -543,14 +593,13 @@ timer.on(event => {
     // 다음 페이즈 레이블 숨김
     nextPhaseLabel.style.display = 'none'
 
-    // 완료 요약 카드 표시 (Feature B)
+    // 완료 요약 카드 표시 (Feature B + Sprint 4 Feature D)
     const { config } = state
     const durationSeconds = workoutStartTime
       ? Math.round((Date.now() - workoutStartTime.getTime()) / 1000)
       : (config.workDuration + config.restDuration) * config.totalRounds + config.countdownDuration
-    showSummaryCard(config.totalRounds, durationSeconds, config.workDuration)
 
-    // 운동 기록 저장 (Pro)
+    // 운동 기록 저장 먼저 (Sprint 4 Feature D: 저장 후 streak 조회해야 당일 반영)
     if (premium.isPro() && workoutStartTime) {
       storage.saveWorkout({
         date: new Date().toISOString(),
@@ -561,12 +610,53 @@ timer.on(event => {
       })
     }
     workoutStartTime = null
+
+    // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
+    const streak = premium.isPro() ? storage.getStats().streak : 0
+    showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, streak)
+
+    // 배경 틴트 리셋 (Sprint 4 Feature C)
+    setBodyTint('complete')
   }
 })
 
 // ── 버튼 이벤트 ───────────────────────────────────────────
 
+// 롱프레스 카운트다운 스킵 (Sprint 4 Feature B)
+let longPressTimerId: ReturnType<typeof setTimeout> | null = null
+let longPressActivated = false
+
+btnStart.addEventListener('pointerdown', () => {
+  longPressActivated = false
+  longPressTimerId = setTimeout(() => {
+    const state = timer.getState()
+    if (state.phase === 'countdown') {
+      longPressActivated = true
+      timer.skipCountdown()
+      triggerHaptic(100)
+    }
+    longPressTimerId = null
+  }, 500)
+})
+
+function cancelLongPress(): void {
+  if (longPressTimerId !== null) {
+    clearTimeout(longPressTimerId)
+    longPressTimerId = null
+  }
+}
+
+btnStart.addEventListener('pointerup', cancelLongPress)
+btnStart.addEventListener('pointercancel', cancelLongPress)
+btnStart.addEventListener('pointerleave', cancelLongPress)
+btnStart.addEventListener('contextmenu', (e: MouseEvent) => { e.preventDefault() })
+
 btnStart.addEventListener('click', () => {
+  // 롱프레스로 이미 처리된 경우 click 이벤트 무시
+  if (longPressActivated) {
+    longPressActivated = false
+    return
+  }
   const state = timer.getState()
   if (state.phase === 'complete' || state.phase === 'idle') {
     hideSummaryCard()
@@ -588,12 +678,14 @@ btnStart.addEventListener('click', () => {
 })
 
 btnReset.addEventListener('click', () => {
+  cancelLongPress()
   timer.reset()
   stopCircleAnimation()
   stopElapsedTimer()
   hideSummaryCard()
   releaseWakeLock()
   setRestMode(false)
+  setBodyTint('idle')
   resetOverallProgress()
   nextPhaseLabel.style.display = 'none'
   const cfg = timer.getState().config
@@ -604,6 +696,7 @@ btnReset.addEventListener('click', () => {
   document.documentElement.style.setProperty('--phase-color', 'var(--color-idle)')
   setCircleOffset(1, 1)
   document.title = DEFAULT_TITLE
+  updateSvgAriaLabel('idle', cfg.workDuration, 0, cfg.totalRounds)
 })
 
 // 설정 패널
@@ -662,6 +755,8 @@ btnApplyConfig.addEventListener('click', () => {
   roundLabel.textContent = `0 / ${config.totalRounds}`
   renderRoundDots(0, config.totalRounds)
   btnStart.textContent = '시작'
+  // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
+  updateIntervalDisplay(config.workDuration, config.restDuration)
   // 설정 저장 (Feature C)
   saveSettings({ workDuration: config.workDuration, restDuration: config.restDuration, totalRounds: config.totalRounds })
   settingsPanel.classList.remove('open')
@@ -711,6 +806,8 @@ function renderPresets(): void {
       roundLabel.textContent = `0 / ${preset.config.totalRounds}`
       renderRoundDots(0, preset.config.totalRounds)
       btnStart.textContent = '시작'
+      // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
+      updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
       // 설정 저장 (Feature C)
       saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds })
       settingsPanel.classList.remove('open')
@@ -719,6 +816,39 @@ function renderPresets(): void {
 }
 
 // ── 기록 렌더링 ───────────────────────────────────────────
+
+function renderHistoryDeleteArea(): void {
+  const history = storage.getHistory()
+  if (history.length === 0) {
+    historyDeleteArea.innerHTML = ''
+    return
+  }
+  historyDeleteArea.innerHTML = `
+    <button class="btn-history-delete" id="btn-history-delete">기록 삭제</button>
+  `
+  const btnDelete = document.getElementById('btn-history-delete') as HTMLButtonElement | null
+  if (!btnDelete) return
+  btnDelete.addEventListener('click', () => {
+    historyDeleteArea.innerHTML = `
+      <div class="history-delete-confirm">
+        <span class="history-delete-warning">정말 삭제하시겠습니까?</span>
+        <div class="history-delete-actions">
+          <button class="btn-delete-confirm" id="btn-delete-confirm">확인</button>
+          <button class="btn-delete-cancel" id="btn-delete-cancel">취소</button>
+        </div>
+      </div>
+    `
+    const btnConfirm = document.getElementById('btn-delete-confirm') as HTMLButtonElement | null
+    const btnCancel  = document.getElementById('btn-delete-cancel')  as HTMLButtonElement | null
+    btnConfirm?.addEventListener('click', () => {
+      storage.clearHistory()
+      renderHistory()
+    })
+    btnCancel?.addEventListener('click', () => {
+      renderHistoryDeleteArea()
+    })
+  })
+}
 
 function renderHistory(): void {
   const stats = storage.getStats()
@@ -740,6 +870,7 @@ function renderHistory(): void {
             <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
           </div>`
       }).join('')
+  renderHistoryDeleteArea()
 }
 
 // ── Pro 배지 표시 ─────────────────────────────────────────
@@ -785,6 +916,10 @@ function init(): void {
   inputRest.value   = String(cfg.restDuration)
   inputRounds.value = String(cfg.totalRounds)
   renderRoundDots(0, cfg.totalRounds)
+  // 인터벌 설정 표시 (Sprint 4 Feature A)
+  updateIntervalDisplay(cfg.workDuration, cfg.restDuration)
+  // 초기 ARIA SVG 레이블 (Sprint 4 Feature E)
+  updateSvgAriaLabel('idle', cfg.workDuration, 0, cfg.totalRounds)
 
   // 초기 볼륨 버튼 상태
   const vol = audio.getVolume()
