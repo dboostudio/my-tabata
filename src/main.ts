@@ -45,6 +45,7 @@ const onboardingTooltip = $('#onboarding-tooltip')
 const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
+const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
 
@@ -87,6 +88,35 @@ function loadSettings(): SavedSettings | null {
   }
 }
 
+// ── 미니멀리스트 모드 (Sprint 5) ──────────────────────────
+
+const MINIMALIST_KEY = 'tabatago_minimalist'
+
+function loadMinimalistMode(): boolean {
+  try {
+    return localStorage.getItem(MINIMALIST_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function saveMinimalistMode(enabled: boolean): void {
+  try {
+    if (enabled) {
+      localStorage.setItem(MINIMALIST_KEY, '1')
+    } else {
+      localStorage.removeItem(MINIMALIST_KEY)
+    }
+  } catch {
+    // localStorage 미지원 환경 무시
+  }
+}
+
+function applyMinimalistMode(enabled: boolean): void {
+  document.body.classList.toggle('minimalist', enabled)
+  toggleMinimalist.checked = enabled
+}
+
 // ── 상태 ─────────────────────────────────────────────────
 
 let voiceEnabled = false
@@ -100,11 +130,12 @@ function updateIntervalDisplay(workDuration: number, restDuration: number): void
 
 // ── 페이즈별 배경 색상 틴트 (Sprint 4 Feature C) ──────────
 function setBodyTint(phase: Phase): void {
+  // BUG-10 fix: use CSS variables instead of hardcoded hex so theme changes propagate
   const tintMap: Record<Phase, string> = {
     idle:      'transparent',
     countdown: 'transparent',
-    work:      '#FF4D4D',
-    rest:      '#4DABF7',
+    work:      'var(--color-work)',
+    rest:      'var(--color-rest)',
     complete:  'transparent',
   }
   document.documentElement.style.setProperty('--bg-tint', tintMap[phase])
@@ -644,6 +675,8 @@ function cancelLongPress(): void {
     clearTimeout(longPressTimerId)
     longPressTimerId = null
   }
+  // BUG-04 fix: always reset the flag so the next click is not swallowed
+  longPressActivated = false
 }
 
 btnStart.addEventListener('pointerup', cancelLongPress)
@@ -679,7 +712,7 @@ btnStart.addEventListener('click', () => {
 
 btnReset.addEventListener('click', () => {
   cancelLongPress()
-  timer.reset()
+  timer.reset()  // emits PHASE_CHANGE 'idle' which handles roundDots + roundLabel
   stopCircleAnimation()
   stopElapsedTimer()
   hideSummaryCard()
@@ -691,7 +724,7 @@ btnReset.addEventListener('click', () => {
   const cfg = timer.getState().config
   timerNumber.textContent = String(cfg.workDuration)
   phaseLabel.textContent = '준비'
-  roundLabel.textContent = `0 / ${cfg.totalRounds}`
+  // BUG-03 fix: roundLabel and renderRoundDots are already set by the PHASE_CHANGE 'idle' handler
   btnStart.textContent = '시작'
   document.documentElement.style.setProperty('--phase-color', 'var(--color-idle)')
   setCircleOffset(1, 1)
@@ -929,6 +962,14 @@ function init(): void {
 
   renderPresets()
   updateProUI()
+
+  // 미니멀리스트 모드 초기화 (Sprint 5)
+  applyMinimalistMode(loadMinimalistMode())
+  toggleMinimalist.addEventListener('change', () => {
+    const enabled = toggleMinimalist.checked
+    applyMinimalistMode(enabled)
+    saveMinimalistMode(enabled)
+  })
 
   // 스와이프로 패널 닫기 (Sprint 3 Feature E)
   addSwipeToClose(settingsPanel)
