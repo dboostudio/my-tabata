@@ -35,6 +35,9 @@ const statsWeek = $('#stats-week');
 const statsStreak = $('#stats-streak');
 const elapsedLabel = $('#elapsed-label');
 const summaryCard = $('#summary-card');
+const overallProgressFill = $('#overall-progress-fill');
+const nextPhaseLabel = $('#next-phase-label');
+const onboardingTooltip = $('#onboarding-tooltip');
 // ── 서비스 인스턴스 ───────────────────────────────────────
 const timer = new TabataTimer(DEFAULT_CONFIG);
 const audio = new AudioManager();
@@ -72,6 +75,89 @@ function loadSettings() {
 let voiceEnabled = false;
 let workoutStartTime = null;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
+// ── 전체 진행 바 (Sprint 3 Feature A) ────────────────────
+function updateOverallProgress(currentRound, totalRounds) {
+    const pct = totalRounds > 0 ? Math.round((currentRound / totalRounds) * 100) : 0;
+    overallProgressFill.style.width = `${pct}%`;
+}
+function resetOverallProgress() {
+    overallProgressFill.style.width = '0%';
+}
+// ── 휴식 시각적 구분 (Sprint 3 Feature B) ─────────────────
+function setRestMode(active) {
+    document.body.classList.toggle('rest-mode', active);
+}
+// ── 다음 페이즈 미리보기 (Sprint 3 Feature C) ─────────────
+function updateNextPhaseLabel(phase, round, config) {
+    if (phase === 'idle' || phase === 'complete') {
+        nextPhaseLabel.style.display = 'none';
+        return;
+    }
+    let text = '';
+    if (phase === 'countdown') {
+        text = `다음: 운동 ${config.workDuration}s`;
+    }
+    else if (phase === 'work') {
+        text = `다음: 휴식 ${config.restDuration}s`;
+    }
+    else if (phase === 'rest') {
+        if (round < config.totalRounds) {
+            text = `다음: 운동 ${config.workDuration}s`;
+        }
+        else {
+            text = '다음: 완료!';
+        }
+    }
+    nextPhaseLabel.textContent = text;
+    nextPhaseLabel.style.display = 'block';
+}
+// ── 햅틱 피드백 (Sprint 3 Feature D) ─────────────────────
+function triggerHaptic(pattern) {
+    if ('vibrate' in navigator) {
+        try {
+            navigator.vibrate(pattern);
+        }
+        catch {
+            // 미지원 환경 무시
+        }
+    }
+}
+// ── 온보딩 툴팁 (Sprint 3 Feature F) ─────────────────────
+const ONBOARDING_KEY = 'tabatago_onboarded';
+let onboardingTimerId = null;
+function showOnboardingTooltip() {
+    try {
+        if (localStorage.getItem(ONBOARDING_KEY))
+            return;
+    }
+    catch {
+        // localStorage 미지원 환경 — 항상 표시
+    }
+    onboardingTooltip.style.display = 'block';
+    onboardingTooltip.classList.remove('dismissing');
+    onboardingTimerId = setTimeout(() => {
+        dismissOnboardingTooltip();
+    }, 4000);
+}
+function dismissOnboardingTooltip() {
+    if (onboardingTimerId !== null) {
+        clearTimeout(onboardingTimerId);
+        onboardingTimerId = null;
+    }
+    if (onboardingTooltip.style.display === 'none')
+        return;
+    onboardingTooltip.classList.add('dismissing');
+    onboardingTooltip.addEventListener('animationend', () => {
+        onboardingTooltip.style.display = 'none';
+        onboardingTooltip.classList.remove('dismissing');
+    }, { once: true });
+    try {
+        localStorage.setItem(ONBOARDING_KEY, '1');
+    }
+    catch {
+        // localStorage 미지원 환경 무시
+    }
+}
 // ── 경과 시간 표시 (Feature A) ────────────────────────────
 let elapsedIntervalId = null;
 function startElapsedTimer() {
@@ -223,6 +309,29 @@ document.addEventListener('keydown', (e) => {
             break;
     }
 });
+// ── 스와이프로 패널 닫기 (Sprint 3 Feature E) ─────────────
+function addSwipeToClose(panel) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    panel.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        if (!touch)
+            return;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+    }, { passive: true });
+    panel.addEventListener('touchend', (e) => {
+        const touch = e.changedTouches[0];
+        if (!touch)
+            return;
+        const deltaX = touch.clientX - touchStartX;
+        const deltaY = touch.clientY - touchStartY;
+        // 왼쪽 스와이프 & 수평 우세 조건: |deltaX| > 80 && |deltaX| > |deltaY| * 1.5
+        if (deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            panel.classList.remove('open');
+        }
+    }, { passive: true });
+}
 // ── rAF 기반 원형 프로그레스 애니메이션 (60fps) ──────────
 let rafId = null;
 function setCircleOffset(remaining, total) {
@@ -303,6 +412,20 @@ timer.on(event => {
             roundLabel.textContent = `0 / ${state.config.totalRounds}`;
             renderRoundDots(0, state.config.totalRounds);
         }
+        // 전체 진행 바 (Sprint 3 Feature A)
+        if (phase === 'work' || phase === 'rest') {
+            // work 시작 시: 이전 라운드 완료 기준 (round - 1), rest 시작 시: round 완료 기준
+            const completedRounds = phase === 'work' ? round - 1 : round;
+            updateOverallProgress(completedRounds, state.config.totalRounds);
+        }
+        else if (phase === 'complete') {
+            updateOverallProgress(state.config.totalRounds, state.config.totalRounds);
+        }
+        else if (phase === 'idle' || phase === 'countdown') {
+            resetOverallProgress();
+        }
+        // 다음 페이즈 미리보기 (Sprint 3 Feature C)
+        updateNextPhaseLabel(phase, round, state.config);
         // 초기 숫자 표시 (complete는 COMPLETE 이벤트에서 처리)
         if (phase !== 'complete') {
             timerNumber.textContent = String(state.timeRemaining);
@@ -319,13 +442,13 @@ timer.on(event => {
             audio.workStart();
         if (phase === 'rest')
             audio.restStart();
-        // 햅틱 피드백 (모바일)
-        if ('vibrate' in navigator) {
-            if (phase === 'work')
-                navigator.vibrate(100);
-            if (phase === 'rest')
-                navigator.vibrate(50);
-        }
+        // 햅틱 피드백 강화 (Sprint 3 Feature D)
+        if (phase === 'work')
+            triggerHaptic(200);
+        if (phase === 'rest')
+            triggerHaptic([50, 50, 50]);
+        // 휴식 시각적 구분 (Sprint 3 Feature B)
+        setRestMode(phase === 'rest');
         // 음성 안내 (Pro)
         if (voiceEnabled && premium.isPro()) {
             if (phase === 'work') {
@@ -364,6 +487,12 @@ timer.on(event => {
         stopElapsedTimer();
         updateTabTitle('complete', 0);
         releaseWakeLock();
+        // 햅틱 완료 진동 (Sprint 3 Feature D)
+        triggerHaptic(500);
+        // 휴식 모드 해제 (Sprint 3 Feature B)
+        setRestMode(false);
+        // 다음 페이즈 레이블 숨김
+        nextPhaseLabel.style.display = 'none';
         // 완료 요약 카드 표시 (Feature B)
         const { config } = state;
         const durationSeconds = workoutStartTime
@@ -412,6 +541,9 @@ btnReset.addEventListener('click', () => {
     stopElapsedTimer();
     hideSummaryCard();
     releaseWakeLock();
+    setRestMode(false);
+    resetOverallProgress();
+    nextPhaseLabel.style.display = 'none';
     const cfg = timer.getState().config;
     timerNumber.textContent = String(cfg.workDuration);
     phaseLabel.textContent = '준비';
@@ -596,5 +728,12 @@ function init() {
     btnVoice.classList.toggle('active', vol > 0);
     renderPresets();
     updateProUI();
+    // 스와이프로 패널 닫기 (Sprint 3 Feature E)
+    addSwipeToClose(settingsPanel);
+    addSwipeToClose(historyPanel);
+    // 온보딩 툴팁 (Sprint 3 Feature F)
+    showOnboardingTooltip();
+    // 시작 버튼 클릭 시 온보딩 툴팁 즉시 해제
+    btnStart.addEventListener('click', dismissOnboardingTooltip, { once: true });
 }
 init();

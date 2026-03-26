@@ -488,6 +488,105 @@ input  { font-family: inherit; }
   color: var(--text-muted);
 }
 
+/* ── 전체 진행 바 (Sprint 3 Feature A) ── */
+.overall-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--surface2);
+  z-index: 150;
+}
+.overall-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--phase-color);
+  transition: width 0.5s ease, background 0.4s;
+}
+
+/* ── 헤더 오프셋 (진행 바 공간 확보) ── */
+.header {
+  margin-top: 3px;
+}
+
+/* ── 휴식 시각적 구분 (Sprint 3 Feature B) ── */
+@keyframes rest-pulse {
+  0%   { opacity: 1;    transform: scale(1.0); }
+  50%  { opacity: 0.55; transform: scale(1.05); }
+  100% { opacity: 1;    transform: scale(1.0); }
+}
+
+.rest-mode .ring-progress {
+  opacity: 0.55;
+  transition: opacity 0.4s, stroke 0.4s;
+}
+
+.rest-mode .phase-label {
+  animation: rest-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── 다음 페이즈 미리보기 (Sprint 3 Feature C) ── */
+.next-phase-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+  opacity: 0.8;
+  letter-spacing: 0.3px;
+}
+
+/* ── 온보딩 툴팁 (Sprint 3 Feature F) ── */
+.start-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.onboarding-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  animation: tooltip-fade-in 0.3s ease-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 말풍선 꼬리 */
+.onboarding-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--surface2);
+}
+
+@keyframes tooltip-fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes tooltip-fade-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(6px); }
+}
+
+.onboarding-tooltip.dismissing {
+  animation: tooltip-fade-out 0.3s ease-in forwards;
+}
+
 /* ── 반응형 ── */
 @media (max-width: 480px) {
   .timer-container { gap: 20px; }

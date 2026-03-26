@@ -10,6 +10,11 @@
 </head>
 <body>
 
+<!-- ── 전체 진행 바 (Sprint 3 Feature A) ── -->
+<div id="overall-progress" class="overall-progress" aria-hidden="true">
+  <div id="overall-progress-fill" class="overall-progress-fill"></div>
+</div>
+
 <!-- ── 헤더 ── -->
 <header class="header">
   <div class="logo">TabataGo</div>
@@ -34,6 +39,7 @@
       <div id="timer-number" class="timer-number">20</div>
       <div id="round-label" class="round-label">0 / 8</div>
       <div id="elapsed-label" class="elapsed-label" style="display:none"></div>
+      <div id="next-phase-label" class="next-phase-label" style="display:none"></div>
       <div id="summary-card" class="summary-card"></div>
     </div>
   </div>
@@ -44,7 +50,12 @@
   <!-- 컨트롤 버튼 -->
   <div class="controls">
     <button id="btn-reset" class="btn-secondary" aria-label="초기화">↺</button>
-    <button id="btn-start" class="btn-primary" aria-label="시작">시작</button>
+    <div class="start-wrapper">
+      <div id="onboarding-tooltip" class="onboarding-tooltip" style="display:none">
+        탭하여 시작하세요 👆
+      </div>
+      <button id="btn-start" class="btn-primary" aria-label="시작">시작</button>
+    </div>
   </div>
 
 </main>
