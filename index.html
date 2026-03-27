@@ -93,6 +93,23 @@
       <button id="btn-apply-config" class="btn-outline">적용</button>
     </section>
 
+    <!-- 워밍업 / 쿨다운 토글 (Sprint 6 Feature C) -->
+    <section class="section">
+      <h3>워밍업 / 쿨다운 <span class="pro-badge">Pro</span></h3>
+      <label class="toggle-row">
+        <span class="toggle-label">워밍업 (60초)</span>
+        <span class="toggle-desc">운동 전 준비 단계</span>
+        <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" />
+        <span class="toggle-switch" aria-hidden="true"></span>
+      </label>
+      <label class="toggle-row" style="margin-top:12px">
+        <span class="toggle-label">쿨다운 (60초)</span>
+        <span class="toggle-desc">운동 후 마무리 단계</span>
+        <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" />
+        <span class="toggle-switch" aria-hidden="true"></span>
+      </label>
+    </section>
+
     <!-- 미니멀리스트 모드 토글 -->
     <section class="section">
       <h3>디스플레이</h3>
@@ -121,6 +138,27 @@
     <button id="btn-close-history" aria-label="닫기">✕</button>
   </div>
   <div class="panel-body">
+    <!-- 주간 목표 카드 (Sprint 6 Feature D) -->
+    <div id="weekly-goal-card" class="weekly-goal-card">
+      <div class="weekly-goal-header">
+        <span class="weekly-goal-title">이번 주 목표</span>
+        <div class="weekly-goal-buttons">
+          <button class="goal-btn" data-goal="3" aria-label="주 3회 목표">3회</button>
+          <button class="goal-btn" data-goal="4" aria-label="주 4회 목표">4회</button>
+          <button class="goal-btn" data-goal="5" aria-label="주 5회 목표">5회</button>
+        </div>
+      </div>
+      <div id="weekly-goal-progress" class="weekly-goal-progress" style="display:none">
+        <svg class="goal-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="goal-ring-bg" cx="18" cy="18" r="14"/>
+          <circle id="goal-ring-fill" class="goal-ring-fill" cx="18" cy="18" r="14"/>
+        </svg>
+        <div class="weekly-goal-text">
+          <div id="weekly-goal-count" class="weekly-goal-count">0 / 0</div>
+          <div id="weekly-goal-message" class="weekly-goal-message"></div>
+        </div>
+      </div>
+    </div>
     <div class="stats-row">
       <div class="stat-card">
         <div id="stats-total" class="stat-number">0</div>
@@ -147,9 +185,10 @@
     <ul class="pro-features">
       <li>✅ 커스텀 인터벌 (운동/휴식 시간, 라운드)</li>
       <li>✅ 8가지 워크아웃 프리셋</li>
+      <li>✅ 워밍업 & 쿨다운 단계</li>
       <li>✅ 음성 안내</li>
       <li>✅ 운동 기록 & 통계</li>
-      <li>✅ 3가지 컬러 테마</li>
+      <li>✅ 주간 목표 설정</li>
       <li>✅ 화면 켜짐 유지</li>
     </ul>
     <div class="modal-price">단 <strong>$4.99</strong> 일회성 결제</div>
@@ -160,6 +199,9 @@
 
 <!-- ── 패널 오버레이 ── -->
 <div class="overlay" onclick="document.querySelectorAll('.panel,.modal-overlay').forEach(el=>el.classList.remove('open'))"></div>
+
+<!-- ── 토스트 알림 (Sprint 6 Feature B) ── -->
+<div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module" src="/src/main.ts"></script>
 </body>

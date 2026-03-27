@@ -1,5 +1,6 @@
 // 📄 src/storage.ts — 운동 기록 관리 (Pro 기능)
 const HISTORY_KEY = 'tabatago_history';
+const WEEKLY_GOAL_KEY = 'tabatago_weekly_goal';
 const MAX_RECORDS = 100;
 export class WorkoutStorage {
     getHistory() {
@@ -20,6 +21,33 @@ export class WorkoutStorage {
     }
     clearHistory() {
         localStorage.removeItem(HISTORY_KEY);
+    }
+    getWeeklyGoal() {
+        try {
+            const raw = localStorage.getItem(WEEKLY_GOAL_KEY);
+            if (!raw)
+                return null;
+            const n = Number(raw);
+            if (n === 3 || n === 4 || n === 5)
+                return n;
+            return null;
+        }
+        catch {
+            return null;
+        }
+    }
+    setWeeklyGoal(goal) {
+        try {
+            if (goal === null) {
+                localStorage.removeItem(WEEKLY_GOAL_KEY);
+            }
+            else {
+                localStorage.setItem(WEEKLY_GOAL_KEY, String(goal));
+            }
+        }
+        catch {
+            // localStorage 미지원 환경 무시
+        }
     }
     getStats() {
         const history = this.getHistory();

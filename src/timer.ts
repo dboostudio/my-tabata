@@ -1,12 +1,14 @@
 // 📄 src/timer.ts — 타이머 핵심 로직 (상태 머신)
 
-export type Phase = 'idle' | 'countdown' | 'work' | 'rest' | 'complete'
+export type Phase = 'idle' | 'countdown' | 'warmup' | 'work' | 'rest' | 'cooldown' | 'complete'
 
 export interface TimerConfig {
   workDuration: number   // 초
   restDuration: number   // 초
   totalRounds: number
   countdownDuration: number
+  warmupDuration: number   // 초 (0 = 비활성)
+  cooldownDuration: number // 초 (0 = 비활성)
 }
 
 export interface TimerState {
@@ -27,6 +29,8 @@ export const DEFAULT_CONFIG: TimerConfig = {
   restDuration: 10,
   totalRounds: 8,
   countdownDuration: 3,
+  warmupDuration: 0,
+  cooldownDuration: 0,
 }
 
 export class TabataTimer {
@@ -65,6 +69,14 @@ export class TabataTimer {
     this._enterPhase('countdown', 0)
   }
 
+  hasWarmup(): boolean {
+    return this.state.config.warmupDuration > 0
+  }
+
+  hasCooldown(): boolean {
+    return this.state.config.cooldownDuration > 0
+  }
+
   pause(): void {
     if (!this.state.isRunning) return
     this._clearInterval()
@@ -73,6 +85,7 @@ export class TabataTimer {
 
   resume(): void {
     if (this.state.isRunning || this.state.phase === 'idle' || this.state.phase === 'complete') return
+    // warmup/cooldown 도 일시정지 가능
     // 재개 시 절대 타임스탬프를 현재 남은 시간 기준으로 재설정
     this.phaseStartTime = Date.now()
     this.phaseStartRemaining = this.state.timeRemaining
@@ -110,11 +123,13 @@ export class TabataTimer {
     this.state.currentRound = round
     this.state.isRunning = true
 
-    const { workDuration, restDuration, countdownDuration } = this.state.config
+    const { workDuration, restDuration, countdownDuration, warmupDuration, cooldownDuration } = this.state.config
     switch (phase) {
       case 'countdown': this.state.timeRemaining = countdownDuration; break
+      case 'warmup':    this.state.timeRemaining = warmupDuration;    break
       case 'work':      this.state.timeRemaining = workDuration;      break
       case 'rest':      this.state.timeRemaining = restDuration;      break
+      case 'cooldown':  this.state.timeRemaining = cooldownDuration;  break
       default:          this.state.timeRemaining = 0
     }
 
@@ -146,11 +161,19 @@ export class TabataTimer {
 
     // 페이즈 전환
     this._clearInterval()
-    const { totalRounds } = this.state.config
+    const { totalRounds, warmupDuration, cooldownDuration } = this.state.config
     const round = this.state.currentRound
 
     switch (this.state.phase) {
       case 'countdown':
+        // 워밍업이 있으면 워밍업 먼저, 없으면 바로 운동
+        if (warmupDuration > 0) {
+          this._enterPhase('warmup', 0)
+        } else {
+          this._enterPhase('work', 1)
+        }
+        break
+      case 'warmup':
         this._enterPhase('work', 1)
         break
       case 'work':
@@ -159,9 +182,14 @@ export class TabataTimer {
       case 'rest':
         if (round < totalRounds) {
           this._enterPhase('work', round + 1)
+        } else if (cooldownDuration > 0) {
+          this._enterPhase('cooldown', totalRounds)
         } else {
           this._complete()
         }
+        break
+      case 'cooldown':
+        this._complete()
         break
     }
   }

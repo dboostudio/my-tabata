@@ -2,8 +2,10 @@
 :root {
   --color-idle:       #6C757D;
   --color-countdown:  #FFC107;
+  --color-warmup:     #A78BFA;
   --color-work:       #FF4D4D;
   --color-rest:       #4DABF7;
+  --color-cooldown:   #A78BFA;
   --color-complete:   #51CF66;
   --phase-color:      var(--color-idle);
 
@@ -764,6 +766,156 @@ input  { font-family: inherit; }
 #round-label,
 #elapsed-label {
   transition: opacity 0.3s;
+}
+
+/* ── Sprint 6: Pro 업그레이드 유도 배너 (Feature A) ── */
+.summary-upgrade-banner {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--color-rest);
+  text-decoration: none;
+  opacity: 0.85;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: opacity 0.2s, background 0.2s;
+  display: inline-block;
+}
+.summary-upgrade-banner:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-rest) 12%, transparent);
+}
+
+/* ── Sprint 6: 공유 버튼 (Feature B) ── */
+.btn-share {
+  margin-top: 8px;
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--phase-color);
+  color: var(--phase-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s, opacity 0.2s;
+}
+.btn-share:hover {
+  background: color-mix(in srgb, var(--phase-color) 15%, transparent);
+}
+
+/* ── Sprint 6: 토스트 알림 (Feature B) ── */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+  z-index: 500;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ── Sprint 6: 워밍업 / 쿨다운 페이즈 (Feature C) ── */
+.phase-warmup .ring-progress,
+.phase-cooldown .ring-progress {
+  stroke: var(--color-warmup);
+}
+
+/* ── Sprint 6: 주간 목표 카드 (Feature D) ── */
+.weekly-goal-card {
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.weekly-goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.weekly-goal-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.weekly-goal-buttons {
+  display: flex;
+  gap: 6px;
+}
+.goal-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: transparent;
+  border: 1px solid var(--surface);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.goal-btn:hover {
+  border-color: var(--phase-color);
+  color: var(--text);
+}
+.goal-btn.active {
+  background: var(--phase-color);
+  border-color: var(--phase-color);
+  color: #fff;
+}
+.weekly-goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.goal-ring {
+  width: 48px;
+  height: 48px;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+.goal-ring-bg {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 3;
+}
+.goal-ring-fill {
+  fill: none;
+  stroke: var(--phase-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.4s;
+}
+.goal-ring-fill.achieved {
+  stroke: var(--color-complete);
+}
+.weekly-goal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.weekly-goal-count {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.weekly-goal-message {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 /* ── 반응형 ── */

@@ -46,6 +46,14 @@ const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
+const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
+const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
+const weeklyGoalCard    = $('#weekly-goal-card')
+const weeklyGoalProgress = $('#weekly-goal-progress')
+const weeklyGoalCount   = $('#weekly-goal-count')
+const weeklyGoalMessage = $('#weekly-goal-message')
+const goalRingFill      = document.querySelector<SVGCircleElement>('#goal-ring-fill')!
+const toastEl           = $('#toast')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
 
@@ -63,6 +71,8 @@ interface SavedSettings {
   workDuration: number
   restDuration: number
   totalRounds: number
+  warmupEnabled?: boolean
+  cooldownEnabled?: boolean
 }
 
 function saveSettings(cfg: SavedSettings): void {
@@ -82,7 +92,13 @@ function loadSettings(): SavedSettings | null {
     const rest   = Math.max(3,  Math.min(120, Number(parsed.restDuration)  || 0))
     const rounds = Math.max(1,  Math.min(20,  Number(parsed.totalRounds)   || 0))
     if (!work || !rest || !rounds) return null
-    return { workDuration: work, restDuration: rest, totalRounds: rounds }
+    return {
+      workDuration: work,
+      restDuration: rest,
+      totalRounds: rounds,
+      warmupEnabled: parsed.warmupEnabled === true,
+      cooldownEnabled: parsed.cooldownEnabled === true,
+    }
   } catch {
     return null
   }
@@ -134,8 +150,10 @@ function setBodyTint(phase: Phase): void {
   const tintMap: Record<Phase, string> = {
     idle:      'transparent',
     countdown: 'transparent',
+    warmup:    'var(--color-warmup)',
     work:      'var(--color-work)',
     rest:      'var(--color-rest)',
+    cooldown:  'var(--color-warmup)',
     complete:  'transparent',
   }
   document.documentElement.style.setProperty('--bg-tint', tintMap[phase])
@@ -146,8 +164,10 @@ function updateSvgAriaLabel(phase: Phase, timeRemaining: number, round: number, 
   const phaseNames: Record<Phase, string> = {
     idle:      '대기',
     countdown: '준비 카운트다운',
+    warmup:    '워밍업',
     work:      '운동',
     rest:      '휴식',
+    cooldown:  '쿨다운',
     complete:  '완료',
   }
   const label = phase === 'idle' || phase === 'complete'
@@ -179,15 +199,21 @@ function updateNextPhaseLabel(phase: Phase, round: number, config: ReturnType<ty
   }
   let text = ''
   if (phase === 'countdown') {
+    text = config.warmupDuration > 0 ? `다음: 워밍업 ${config.warmupDuration}s` : `다음: 운동 ${config.workDuration}s`
+  } else if (phase === 'warmup') {
     text = `다음: 운동 ${config.workDuration}s`
   } else if (phase === 'work') {
     text = `다음: 휴식 ${config.restDuration}s`
   } else if (phase === 'rest') {
     if (round < config.totalRounds) {
       text = `다음: 운동 ${config.workDuration}s`
+    } else if (config.cooldownDuration > 0) {
+      text = `다음: 쿨다운 ${config.cooldownDuration}s`
     } else {
       text = '다음: 완료!'
     }
+  } else if (phase === 'cooldown') {
+    text = '다음: 완료!'
   }
   nextPhaseLabel.textContent = text
   nextPhaseLabel.style.display = 'block'
@@ -275,6 +301,30 @@ function formatDuration(totalSeconds: number): string {
 
 // ── 완료 요약 카드 (Feature B + Sprint 4 Feature D: 스트릭 배지) ──
 
+function showToast(message: string): void {
+  toastEl.textContent = message
+  toastEl.classList.add('show')
+  setTimeout(() => { toastEl.classList.remove('show') }, 3000)
+}
+
+async function shareWorkout(rounds: number, durationSeconds: number): Promise<void> {
+  const text = `타바타 ${rounds}라운드 완료! 💪 ${formatDuration(durationSeconds)} 달성했습니다. TabataGo로 함께해요!`
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ title: 'TabataGo 운동 완료', text })
+    } catch {
+      // 사용자 취소 또는 미지원 — 조용히 무시
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast('클립보드에 복사됨')
+    } catch {
+      // clipboard 미지원 환경 무시
+    }
+  }
+}
+
 function showSummaryCard(rounds: number, durationSeconds: number, workDuration: number, streak: number): void {
   stopCircleAnimation()
   elapsedLabel.style.display = 'none'
@@ -283,9 +333,12 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
   roundLabel.style.display = 'none'
   intervalDisplay.style.display = 'none'
 
-  const avgWork = workDuration  // each round is the same work duration
   const streakBadge = streak >= 3
     ? `<div class="summary-badge">🔥 ${streak}일 연속!</div>`
+    : ''
+  // Feature A: Pro 업그레이드 유도 배너 (FREE 사용자만)
+  const upgradeBanner = !premium.isPro()
+    ? `<span class="summary-upgrade-banner" id="summary-upgrade-link">Pro로 업그레이드하면 기록이 저장됩니다 →</span>`
     : ''
   summaryCard.innerHTML = `
     <div class="summary-emoji">🎉</div>
@@ -301,12 +354,25 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
         <span class="summary-stat-label">총 소요 시간</span>
       </div>
       <div class="summary-stat">
-        <span class="summary-stat-value">${avgWork}s</span>
+        <span class="summary-stat-value">${workDuration}s</span>
         <span class="summary-stat-label">라운드당 운동</span>
       </div>
     </div>
+    <button class="btn-share" id="btn-share-workout" aria-label="운동 결과 공유">공유하기 📤</button>
+    ${upgradeBanner}
   `
   summaryCard.classList.add('visible')
+
+  // Feature B: 공유 버튼 이벤트
+  const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
+  btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds).catch(() => {}) })
+
+  // Feature A: 업그레이드 배너 탭 → Pro 모달 열기 + 배너 숨기기
+  const upgradeLink = document.getElementById('summary-upgrade-link') as HTMLElement | null
+  upgradeLink?.addEventListener('click', () => {
+    proModal.classList.add('open')
+    upgradeLink.style.display = 'none'
+  })
 }
 
 function hideSummaryCard(): void {
@@ -316,6 +382,7 @@ function hideSummaryCard(): void {
   phaseLabel.style.display = ''
   roundLabel.style.display = ''
   intervalDisplay.style.display = ''
+  nextPhaseLabel.style.display = 'none'
 }
 
 // ── Wake Lock ────────────────────────────────────────────
@@ -369,11 +436,17 @@ const DEFAULT_TITLE = 'TabataGo — 타바타 타이머'
 
 function updateTabTitle(phase: Phase, timeRemaining: number): void {
   switch (phase) {
+    case 'warmup':
+      document.title = `워밍업 ${timeRemaining}s | TabataGo`
+      break
     case 'work':
       document.title = `운동! ${timeRemaining}s | TabataGo`
       break
     case 'rest':
       document.title = `휴식 ${timeRemaining}s | TabataGo`
+      break
+    case 'cooldown':
+      document.title = `쿨다운 ${timeRemaining}s | TabataGo`
       break
     case 'countdown':
       document.title = `준비 ${timeRemaining}s | TabataGo`
@@ -475,8 +548,10 @@ function resetCircleForPhase(remaining: number, total: number): void {
 function getPhaseDuration(config: ReturnType<typeof timer.getState>['config'], phase: Phase): number {
   switch (phase) {
     case 'countdown': return config.countdownDuration
+    case 'warmup':    return config.warmupDuration
     case 'work':      return config.workDuration
     case 'rest':      return config.restDuration
+    case 'cooldown':  return config.cooldownDuration
     default:          return 1
   }
 }
@@ -511,10 +586,12 @@ timer.on(event => {
 
     // 페이즈별 UI 색상·레이블
     const phaseMap: Record<Phase, { label: string; color: string }> = {
-      idle:      { label: '준비',    color: 'var(--color-idle)' },
-      countdown: { label: '준비',    color: 'var(--color-countdown)' },
-      work:      { label: '운동!',   color: 'var(--color-work)' },
-      rest:      { label: '휴식',    color: 'var(--color-rest)' },
+      idle:      { label: '준비',     color: 'var(--color-idle)' },
+      countdown: { label: '준비',     color: 'var(--color-countdown)' },
+      warmup:    { label: '워밍업',   color: 'var(--color-warmup)' },
+      work:      { label: '운동!',    color: 'var(--color-work)' },
+      rest:      { label: '휴식',     color: 'var(--color-rest)' },
+      cooldown:  { label: '쿨다운',   color: 'var(--color-warmup)' },
       complete:  { label: '완료! 🎉', color: 'var(--color-complete)' },
     }
     const { label, color } = phaseMap[phase]
@@ -527,13 +604,16 @@ timer.on(event => {
     // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
     updateSvgAriaLabel(phase, state.timeRemaining, round, state.config.totalRounds)
 
-    // 라운드 표시
+    // 라운드 표시 (warmup/cooldown은 라운드에 포함 안 됨)
     if (phase === 'work' || phase === 'rest') {
       roundLabel.textContent = `${round} / ${state.config.totalRounds}`
       renderRoundDots(round, state.config.totalRounds)
-    } else if (phase === 'idle') {
+    } else if (phase === 'idle' || phase === 'warmup') {
       roundLabel.textContent = `0 / ${state.config.totalRounds}`
       renderRoundDots(0, state.config.totalRounds)
+    } else if (phase === 'cooldown') {
+      roundLabel.textContent = `${state.config.totalRounds} / ${state.config.totalRounds}`
+      renderRoundDots(state.config.totalRounds, state.config.totalRounds)
     }
 
     // 전체 진행 바 (Sprint 3 Feature A)
@@ -541,9 +621,9 @@ timer.on(event => {
       // work 시작 시: 이전 라운드 완료 기준 (round - 1), rest 시작 시: round 완료 기준
       const completedRounds = phase === 'work' ? round - 1 : round
       updateOverallProgress(completedRounds, state.config.totalRounds)
-    } else if (phase === 'complete') {
+    } else if (phase === 'complete' || phase === 'cooldown') {
       updateOverallProgress(state.config.totalRounds, state.config.totalRounds)
-    } else if (phase === 'idle' || phase === 'countdown') {
+    } else if (phase === 'idle' || phase === 'countdown' || phase === 'warmup') {
       resetOverallProgress()
     }
 
@@ -565,15 +645,18 @@ timer.on(event => {
     updateTabTitle(phase, state.timeRemaining)
 
     // 오디오
-    if (phase === 'work')  audio.workStart()
-    if (phase === 'rest')  audio.restStart()
+    if (phase === 'work')     audio.workStart()
+    if (phase === 'rest')     audio.restStart()
+    if (phase === 'warmup')   audio.restStart()   // 부드러운 톤 재사용
+    if (phase === 'cooldown') audio.restStart()   // 부드러운 톤 재사용
 
     // 햅틱 피드백 강화 (Sprint 3 Feature D)
     if (phase === 'work')     triggerHaptic(200)
     if (phase === 'rest')     triggerHaptic([50, 50, 50])
+    if (phase === 'warmup' || phase === 'cooldown') triggerHaptic([30, 30, 30])
 
     // 휴식 시각적 구분 (Sprint 3 Feature B)
-    setRestMode(phase === 'rest')
+    setRestMode(phase === 'rest' || phase === 'cooldown')
 
     // 음성 안내 (Pro)
     if (voiceEnabled && premium.isPro()) {
@@ -584,8 +667,8 @@ timer.on(event => {
       if (phase === 'rest') speech.restStart()
     }
 
-    // 운동 시작 시간 기록 + 경과 타이머 시작
-    if (phase === 'work' && round === 1) {
+    // 운동 시작 시간 기록 + 경과 타이머 시작 (워밍업 있으면 워밍업 시작 시 기록)
+    if ((phase === 'warmup') || (phase === 'work' && round === 1 && !timer.hasWarmup())) {
       workoutStartTime = new Date()
       startElapsedTimer()
     }
@@ -782,6 +865,8 @@ btnApplyConfig.addEventListener('click', () => {
     restDuration: Math.max(3, Math.min(120, Number(inputRest.value) || 10)),
     totalRounds: Math.max(1, Math.min(20, Number(inputRounds.value) || 8)),
     countdownDuration: 3,
+    warmupDuration: toggleWarmup.checked ? 60 : 0,
+    cooldownDuration: toggleCooldown.checked ? 60 : 0,
   }
   timer.reset()
   timer.updateConfig(config)
@@ -790,8 +875,14 @@ btnApplyConfig.addEventListener('click', () => {
   btnStart.textContent = '시작'
   // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
   updateIntervalDisplay(config.workDuration, config.restDuration)
-  // 설정 저장 (Feature C)
-  saveSettings({ workDuration: config.workDuration, restDuration: config.restDuration, totalRounds: config.totalRounds })
+  // 설정 저장 (Feature C + Sprint 6 Feature C)
+  saveSettings({
+    workDuration: config.workDuration,
+    restDuration: config.restDuration,
+    totalRounds: config.totalRounds,
+    warmupEnabled: toggleWarmup.checked,
+    cooldownEnabled: toggleCooldown.checked,
+  })
   settingsPanel.classList.remove('open')
 })
 
@@ -846,6 +937,55 @@ function renderPresets(): void {
       settingsPanel.classList.remove('open')
     })
   })
+}
+
+// ── 주간 목표 (Sprint 6 Feature D) ───────────────────────
+
+const GOAL_RING_CIRCUMFERENCE = 2 * Math.PI * 14  // r=14
+
+function renderWeeklyGoal(): void {
+  const goal = storage.getWeeklyGoal()
+  const stats = storage.getStats()
+  const thisWeek = stats.thisWeek
+
+  // 목표 버튼 활성화 상태 업데이트 + 클릭 핸들러 연결 (Sprint 6 Feature D 버그 수정)
+  weeklyGoalCard.querySelectorAll<HTMLButtonElement>('.goal-btn').forEach(btn => {
+    const btnGoal = Number(btn.dataset['goal']) as 3 | 4 | 5
+    btn.classList.toggle('active', goal !== null && btnGoal === goal)
+    // 클릭 시 목표 저장 → 재렌더
+    btn.onclick = () => {
+      const current = storage.getWeeklyGoal()
+      // 이미 선택된 버튼 탭 시 목표 해제 (토글)
+      storage.setWeeklyGoal(current === btnGoal ? null : btnGoal)
+      renderWeeklyGoal()
+    }
+  })
+
+  if (goal === null) {
+    weeklyGoalProgress.style.display = 'none'
+    return
+  }
+
+  weeklyGoalProgress.style.display = 'flex'
+  const completed = Math.min(thisWeek, goal)
+  const achieved = completed >= goal
+
+  // 링 채우기
+  const pct = goal > 0 ? completed / goal : 0
+  goalRingFill.style.strokeDasharray = String(GOAL_RING_CIRCUMFERENCE)
+  goalRingFill.style.strokeDashoffset = String(GOAL_RING_CIRCUMFERENCE * (1 - pct))
+  goalRingFill.classList.toggle('achieved', achieved)
+
+  weeklyGoalCount.textContent = `이번 주 ${completed}/${goal}`
+
+  let message = ''
+  if (achieved) {
+    message = '🎉 목표 달성!'
+  } else {
+    const remaining = goal - completed
+    message = remaining === 1 ? '한 번만 더!' : `${remaining}회 남았어요`
+  }
+  weeklyGoalMessage.textContent = message
 }
 
 // ── 기록 렌더링 ───────────────────────────────────────────
@@ -904,6 +1044,7 @@ function renderHistory(): void {
           </div>`
       }).join('')
   renderHistoryDeleteArea()
+  renderWeeklyGoal()
 }
 
 // ── Pro 배지 표시 ─────────────────────────────────────────
@@ -932,13 +1073,20 @@ function init(): void {
   // Feature C: 저장된 설정 불러오기
   const saved = loadSettings()
   if (saved && premium.isPro()) {
+    const warmupOn   = saved.warmupEnabled   === true
+    const cooldownOn = saved.cooldownEnabled === true
     const config: TimerConfig = {
-      workDuration: saved.workDuration,
-      restDuration: saved.restDuration,
-      totalRounds: saved.totalRounds,
+      workDuration:     saved.workDuration,
+      restDuration:     saved.restDuration,
+      totalRounds:      saved.totalRounds,
       countdownDuration: 3,
+      warmupDuration:   warmupOn   ? 60 : 0,
+      cooldownDuration: cooldownOn ? 60 : 0,
     }
     timer.updateConfig(config)
+    // 토글 체크박스 상태 복원 (Sprint 6 Feature C 버그 수정)
+    toggleWarmup.checked   = warmupOn
+    toggleCooldown.checked = cooldownOn
   }
 
   // 초기값 표시
