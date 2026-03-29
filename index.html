@@ -8,21 +8,52 @@
   <!-- Open Graph -->
   <meta property="og:title" content="MyTabata — 타바타 타이머" />
   <meta property="og:description" content="무료 타바타 인터벌 타이머 PWA. 8가지 워크아웃 프리셋, 커스텀 인터벌, 음성 안내, 오프라인 지원." />
-  <meta property="og:image" content="/icons/icon-512.png" />
+  <meta property="og:image" content="/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://tabata.my/" />
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MyTabata — 타바타 타이머" />
   <meta name="twitter:description" content="무료 타바타 인터벌 타이머 PWA. 8가지 워크아웃 프리셋, 커스텀 인터벌, 음성 안내, 오프라인 지원." />
-  <meta name="twitter:image" content="/icons/icon-512.png" />
+  <meta name="twitter:image" content="/og-image.png" />
   <link rel="icon" href="/icons/icon-192.png" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="MyTabata" />
   <title>MyTabata — 타바타 타이머</title>
+  <!-- JSON-LD 구조화 데이터 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MyTabata",
+    "url": "https://tabata.my",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Free Tabata interval timer PWA. 8 workout presets, custom intervals, voice guidance, offline support.",
+    "screenshot": "https://tabata.my/og-image.png",
+    "author": {
+      "@type": "Organization",
+      "name": "dboo.studio"
+    },
+    "inLanguage": ["ko", "en", "ja", "zh", "es"]
+  }
+  </script>
   <link rel="stylesheet" href="/style.css" />
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-N7XC3N6MFS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-N7XC3N6MFS');
+  </script>
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1826213634854387" crossorigin="anonymous"></script>
 </head>
@@ -229,6 +260,35 @@
   <button id="btn-pwa-install" class="btn-pwa-install" data-i18n="pwa.add">추가</button>
   <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="배너 닫기">✕</button>
 </div>
+
+<!-- ── SEO 랜딩 콘텐츠 (Sprint 15) ── -->
+<section class="seo-content" id="seo-content">
+  <h2 data-i18n="seo.title">타바타 운동이란?</h2>
+  <p data-i18n="seo.intro">타바타 운동은 1996년 이즈미 타바타 박사가 개발한 고강도 인터벌 트레이닝(HIIT) 방식입니다. 20초 운동 + 10초 휴식을 8라운드 반복하는 4분 프로토콜로, VO₂max(최대 산소 섭취량)와 무산소 능력을 동시에 향상시킵니다.</p>
+
+  <h3 data-i18n="seo.whyTitle">왜 MyTabata인가요?</h3>
+  <ul>
+    <li data-i18n="seo.why1">100% 무료 — 숨겨진 비용 없음</li>
+    <li data-i18n="seo.why2">설치 불필요 — 브라우저에서 바로 사용</li>
+    <li data-i18n="seo.why3">오프라인 지원 — 인터넷 없이도 작동</li>
+    <li data-i18n="seo.why4">8가지 과학 기반 프리셋 제공</li>
+    <li data-i18n="seo.why5">음성 안내로 화면을 보지 않아도 OK</li>
+  </ul>
+
+  <h3 data-i18n="seo.faqTitle">자주 묻는 질문</h3>
+  <details>
+    <summary data-i18n="seo.faq1q">타바타 운동은 하루에 몇 분이면 되나요?</summary>
+    <p data-i18n="seo.faq1a">기본 타바타 프로토콜은 4분입니다. 워밍업과 쿨다운을 포함하면 약 10분이면 충분합니다.</p>
+  </details>
+  <details>
+    <summary data-i18n="seo.faq2q">초보자도 할 수 있나요?</summary>
+    <p data-i18n="seo.faq2a">네! '입문자' 프리셋(20초 운동/30초 휴식)으로 시작하세요. 체력이 늘면 강도를 높일 수 있습니다.</p>
+  </details>
+  <details>
+    <summary data-i18n="seo.faq3q">앱을 설치해야 하나요?</summary>
+    <p data-i18n="seo.faq3a">아니요. tabata.my에 접속하면 바로 사용할 수 있습니다. 홈 화면에 추가하면 앱처럼 사용할 수도 있습니다.</p>
+  </details>
+</section>
 
 <!-- ── 에러 경계 폴백 UI (Sprint 9 Feature D) ── -->
 <div id="error-boundary" class="error-boundary" style="display:none" role="alert" aria-live="assertive">

@@ -6,6 +6,7 @@ import { WorkoutStorage } from './storage';
 import { PRESETS } from './presets';
 import { APP_VERSION } from './version';
 import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE } from './i18n';
+import { analytics } from './analytics';
 // ── DOM 요소 ────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
 const timerCircle = document.querySelector('#timer-circle');
@@ -345,6 +346,7 @@ async function shareWorkout(rounds, durationSeconds, workDuration, restDuration)
     if (typeof navigator.share === 'function') {
         try {
             await navigator.share({ title: t('share.title'), text });
+            analytics.share('native_share');
         }
         catch {
             // 사용자 취소 또는 미지원 — 조용히 무시
@@ -354,6 +356,7 @@ async function shareWorkout(rounds, durationSeconds, workDuration, restDuration)
         try {
             await navigator.clipboard.writeText(text);
             showToast(t('misc.copied'));
+            analytics.share('clipboard');
         }
         catch {
             // clipboard 미지원 환경 무시
@@ -753,6 +756,7 @@ timer.on(event => {
         // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
         const streak = storage.getStats().streak;
         showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, streak);
+        analytics.workoutComplete(config.totalRounds, durationSeconds, config.workDuration, config.restDuration);
         // 배경 틴트 리셋 (Sprint 4 Feature C)
         setBodyTint('complete');
         // Sprint 9 Feature A: 첫 완료 운동 후 PWA 설치 배너 표시
@@ -805,6 +809,7 @@ btnStart.addEventListener('click', () => {
         timer.reset();
         timer.start();
         acquireWakeLock();
+        analytics.workoutStart(activePresetId ?? 'custom', timer.getState().config.totalRounds);
     }
     else if (state.isRunning) {
         timer.pause();
@@ -1026,6 +1031,7 @@ function renderPresets() {
             saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds });
             // Sprint 7 Feature D: 활성 프리셋 표시
             activePresetId = preset.id;
+            analytics.presetSelect(preset.id);
             renderPresets();
             closePanel(settingsPanel);
             scrollToTop();
@@ -1173,7 +1179,9 @@ btnPwaInstall.addEventListener('click', () => {
     if (!deferredInstallPrompt)
         return;
     deferredInstallPrompt.prompt();
-    deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt.userChoice.then((choice) => {
+        if (choice.outcome === 'accepted')
+            analytics.pwaInstall();
         hidePwaInstallBanner();
         deferredInstallPrompt = null;
     }).catch(() => { });
@@ -1246,6 +1254,7 @@ function init() {
         const light = toggleTheme.checked;
         applyTheme(light);
         saveLightTheme(light);
+        analytics.themeChange(light ? 'light' : 'dark');
     });
     // 스와이프로 패널 닫기 (Sprint 3 Feature E)
     addSwipeToClose(settingsPanel);
@@ -1260,6 +1269,7 @@ function init() {
     selectLanguage.value = getCurrentLang();
     selectLanguage.addEventListener('change', () => {
         setLanguage(selectLanguage.value);
+        analytics.languageChange(selectLanguage.value);
         // 동적 UI 갱신
         phaseLabel.textContent = t(`phase.${timer.getState().phase}`);
         const cfg = timer.getState().config;
