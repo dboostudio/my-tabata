@@ -1450,6 +1450,10 @@ function renderHistoryItems(): void {
 function animateCount(el: HTMLElement, target: number, duration = 400): void {
   const start = Number(el.textContent) || 0
   if (start === target) { el.textContent = String(target); return }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = String(target)
+    return
+  }
   const startTime = performance.now()
   function frame(now: number) {
     const progress = Math.min((now - startTime) / duration, 1)
