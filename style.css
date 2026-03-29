@@ -1202,6 +1202,67 @@ input:focus-visible {
   margin-top: 8px;
 }
 
+/* ── Sprint 21: 키보드 단축키 도움말 ── */
+.keyboard-help-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.keyboard-help {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px 32px;
+  max-width: 320px;
+  width: 100%;
+}
+.keyboard-help h3 {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.keyboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.keyboard-row kbd {
+  display: inline-block;
+  min-width: 48px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-family: monospace;
+  border: 1px solid var(--text-muted);
+}
+
+/* ── Sprint 21: 프리셋 추천 버튼 ── */
+.btn-next-preset {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: transparent;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-next-preset:hover {
+  border-color: var(--phase-color);
+  color: var(--text);
+}
+
 /* ── Sprint 20: 예상 시간 표시 ── */
 .estimated-time {
   font-size: 0.82rem;

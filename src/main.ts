@@ -548,6 +548,7 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
       </div>
     </div>
     <button class="btn-share" id="btn-share-workout" aria-label="${t('btn.share')}">${t('btn.share')}</button>
+    ${getNextPresetSuggestion()}
   `
   summaryCard.classList.add('visible')
 
@@ -555,6 +556,35 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
   const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
   btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration, streak).catch(() => {}) })
 
+  // 추천 프리셋 클릭
+  const btnSuggestion = document.getElementById('btn-next-preset') as HTMLButtonElement | null
+  btnSuggestion?.addEventListener('click', () => {
+    const presetId = btnSuggestion.dataset['id']
+    const preset = PRESETS.find(p => p.id === presetId)
+    if (!preset) return
+    hideSummaryCard()
+    timer.reset()
+    timer.updateConfig(preset.config)
+    inputWork.value = String(preset.config.workDuration)
+    inputRest.value = String(preset.config.restDuration)
+    inputRounds.value = String(preset.config.totalRounds)
+    roundLabel.textContent = `0 / ${preset.config.totalRounds}`
+    renderRoundDots(0, preset.config.totalRounds)
+    updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
+    activePresetId = preset.id
+    btnStart.textContent = t('btn.start')
+    updateEstimatedTime()
+  })
+}
+
+function getNextPresetSuggestion(): string {
+  const others = PRESETS.filter(p => p.id !== 'custom' && p.id !== activePresetId)
+  if (others.length === 0) return ''
+  const pick = others[Math.floor(Math.random() * others.length)]!
+  return `
+    <button class="btn-next-preset" id="btn-next-preset" data-id="${pick.id}">
+      ${pick.emoji} ${t('summary.tryNext')} ${t(`preset.${pick.id}.name`)}
+    </button>`
 }
 
 function hideSummaryCard(): void {
@@ -649,9 +679,41 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
     case 'Escape':
       closePanel(settingsPanel)
       closePanel(historyPanel)
+      hideKeyboardHelp()
+      break
+    case '?':
+      toggleKeyboardHelp()
       break
   }
 })
+
+// ── 키보드 단축키 도움말 (Sprint 21) ────────────────────
+
+function toggleKeyboardHelp(): void {
+  let overlay = document.getElementById('keyboard-help')
+  if (overlay) {
+    overlay.remove()
+    return
+  }
+  overlay = document.createElement('div')
+  overlay.id = 'keyboard-help'
+  overlay.className = 'keyboard-help-overlay'
+  overlay.innerHTML = `
+    <div class="keyboard-help">
+      <h3>${t('keyboard.title')}</h3>
+      <div class="keyboard-row"><kbd>Space</kbd> ${t('keyboard.startPause')}</div>
+      <div class="keyboard-row"><kbd>R</kbd> ${t('keyboard.reset')}</div>
+      <div class="keyboard-row"><kbd>Esc</kbd> ${t('keyboard.closePanel')}</div>
+      <div class="keyboard-row"><kbd>?</kbd> ${t('keyboard.help')}</div>
+    </div>
+  `
+  overlay.addEventListener('click', () => overlay!.remove())
+  document.body.appendChild(overlay)
+}
+
+function hideKeyboardHelp(): void {
+  document.getElementById('keyboard-help')?.remove()
+}
 
 // ── 스와이프로 패널 닫기 (Sprint 3 Feature E) ─────────────
 
