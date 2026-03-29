@@ -44,6 +44,7 @@ const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
+const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
 const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
@@ -138,6 +139,31 @@ function saveMinimalistMode(enabled: boolean): void {
 function applyMinimalistMode(enabled: boolean): void {
   document.body.classList.toggle('minimalist', enabled)
   toggleMinimalist.checked = enabled
+}
+
+// ── 라이트/다크 테마 (Sprint 14) ──────────────────────────
+
+const THEME_KEY = 'tabata_theme'
+
+function loadLightTheme(): boolean {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'light'
+  } catch {
+    return false
+  }
+}
+
+function saveLightTheme(light: boolean): void {
+  try {
+    localStorage.setItem(THEME_KEY, light ? 'light' : 'dark')
+  } catch { /* ignore */ }
+}
+
+function applyTheme(light: boolean): void {
+  document.documentElement.classList.toggle('light-theme', light)
+  toggleTheme.checked = light
+  const themeColor = light ? '#f5f5f7' : '#FF4D4D'
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content', themeColor)
 }
 
 // ── 상태 ─────────────────────────────────────────────────
@@ -835,6 +861,8 @@ btnStart.addEventListener('click', () => {
     longPressActivated = false
     return
   }
+  // iOS Safari: 유저 제스처 시 AudioContext 미리 활성화
+  audio.ensureContext()
   const state = timer.getState()
   if (state.phase === 'complete' || state.phase === 'idle') {
     // Sprint 7 Feature F: 시작 시 설정/기록 패널 닫기 + 타이머로 스크롤
@@ -1319,6 +1347,14 @@ function init(): void {
     const enabled = toggleMinimalist.checked
     applyMinimalistMode(enabled)
     saveMinimalistMode(enabled)
+  })
+
+  // 라이트/다크 테마 (Sprint 14)
+  applyTheme(loadLightTheme())
+  toggleTheme.addEventListener('change', () => {
+    const light = toggleTheme.checked
+    applyTheme(light)
+    saveLightTheme(light)
   })
 
   // 스와이프로 패널 닫기 (Sprint 3 Feature E)

@@ -9,6 +9,8 @@ const GAIN_BY_LEVEL: Record<VolumeLevel, number> = {
   2: 0.4,
 }
 
+const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+
 export class AudioManager {
   private ctx: AudioContext | null = null
   private volumeLevel: VolumeLevel = 2  // default: high
@@ -30,13 +32,22 @@ export class AudioManager {
     return this.volumeLevel > 0
   }
 
-  private _getCtx(): AudioContext {
+  /** 유저 제스처(클릭/탭) 시 호출하여 AudioContext를 미리 생성·resume */
+  ensureContext(): void {
+    this._getCtx()
+  }
+
+  private _getCtx(): AudioContext | null {
+    if (!AudioCtx) return null
     if (!this.ctx) {
-      this.ctx = new AudioContext()
+      try {
+        this.ctx = new AudioCtx()
+      } catch {
+        return null
+      }
     }
-    // 브라우저 자동재생 정책: 사용자 인터랙션 후 resume
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume()
+      this.ctx.resume().catch(() => {})
     }
     return this.ctx
   }
@@ -46,6 +57,7 @@ export class AudioManager {
     if (gain <= 0) return
     try {
       const ctx = this._getCtx()
+      if (!ctx) return
       const oscillator = ctx.createOscillator()
       const gainNode = ctx.createGain()
 
@@ -66,23 +78,19 @@ export class AudioManager {
   }
 
   workStart(): void {
-    // 높은 톤 → 운동 시작!
     this._beep(880, 0.2, 1.0)
     setTimeout(() => this._beep(880, 0.15, 0.75), 250)
   }
 
   restStart(): void {
-    // 낮은 톤 → 휴식
     this._beep(440, 0.3, 0.75)
   }
 
   tick(): void {
-    // 카운트다운 틱
     this._beep(660, 0.1, 0.375)
   }
 
   complete(): void {
-    // 완료 팡파레
     const notes = [523, 659, 784, 1047]
     notes.forEach((freq, i) => {
       setTimeout(() => this._beep(freq, 0.3, 1.0), i * 200)

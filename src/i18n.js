@@ -46,6 +46,8 @@ const T = {
         'settings.display': '디스플레이',
         'settings.minimalist': '미니멀 모드',
         'settings.minimalistDesc': '숫자와 링만 표시',
+        'settings.lightTheme': '라이트 모드',
+        'settings.lightThemeDesc': '밝은 배경 테마',
         'settings.warmupLabel': '워밍업 (60초)',
         'settings.warmupDesc': '운동 전 준비 단계',
         'settings.cooldownLabel': '쿨다운 (60초)',
@@ -146,6 +148,9 @@ const T = {
         'preset.custom.name': '커스텀',
         'preset.custom.desc': '운동·휴식 시간과 라운드를 직접 설정해 나만의 루틴을 만드세요',
         'preset.total': '총 {t}',
+        // 메타/SEO
+        'meta.title': 'MyTabata — 타바타 타이머',
+        'meta.description': '무료 타바타 인터벌 타이머 PWA. 8가지 워크아웃 프리셋, 커스텀 인터벌, 음성 안내, 오프라인 지원.',
     },
     en: {
         'phase.idle': 'Ready',
@@ -168,6 +173,8 @@ const T = {
         'settings.display': 'Display',
         'settings.minimalist': 'Minimal Mode',
         'settings.minimalistDesc': 'Numbers and ring only',
+        'settings.lightTheme': 'Light Mode',
+        'settings.lightThemeDesc': 'Light background theme',
         'settings.warmupLabel': 'Warm-up (60s)',
         'settings.warmupDesc': 'Pre-workout preparation',
         'settings.cooldownLabel': 'Cool-down (60s)',
@@ -253,6 +260,8 @@ const T = {
         'preset.custom.name': 'Custom',
         'preset.custom.desc': 'Set your own work/rest times and rounds for a personalized routine',
         'preset.total': 'Total {t}',
+        'meta.title': 'MyTabata — Tabata Timer',
+        'meta.description': 'Free Tabata interval timer PWA. 8 workout presets, custom intervals, voice guidance, offline support.',
     },
     ja: {
         'phase.idle': '準備',
@@ -275,6 +284,8 @@ const T = {
         'settings.display': 'ディスプレイ',
         'settings.minimalist': 'ミニマルモード',
         'settings.minimalistDesc': '数字とリングのみ表示',
+        'settings.lightTheme': 'ライトモード',
+        'settings.lightThemeDesc': '明るい背景テーマ',
         'settings.warmupLabel': 'ウォームアップ (60秒)',
         'settings.warmupDesc': '運動前の準備段階',
         'settings.cooldownLabel': 'クールダウン (60秒)',
@@ -360,6 +371,8 @@ const T = {
         'preset.custom.name': 'カスタム',
         'preset.custom.desc': '運動・休憩時間とラウンドを自分で設定してオリジナルルーティンを作ろう',
         'preset.total': '合計 {t}',
+        'meta.title': 'MyTabata — タバタタイマー',
+        'meta.description': '無料タバタインターバルタイマーPWA。8つのワークアウトプリセット、カスタムインターバル、音声ガイド、オフライン対応。',
     },
     zh: {
         'phase.idle': '准备',
@@ -382,6 +395,8 @@ const T = {
         'settings.display': '显示',
         'settings.minimalist': '简约模式',
         'settings.minimalistDesc': '仅显示数字和圆圈',
+        'settings.lightTheme': '浅色模式',
+        'settings.lightThemeDesc': '浅色背景主题',
         'settings.warmupLabel': '热身（60秒）',
         'settings.warmupDesc': '运动前准备阶段',
         'settings.cooldownLabel': '冷却（60秒）',
@@ -467,6 +482,8 @@ const T = {
         'preset.custom.name': '自定义',
         'preset.custom.desc': '自定义运动、休息时间和轮数，创建专属训练方案',
         'preset.total': '共 {t}',
+        'meta.title': 'MyTabata — Tabata计时器',
+        'meta.description': '免费Tabata间歇计时器PWA。8种训练预设、自定义间隔、语音引导、离线支持。',
     },
     es: {
         'phase.idle': 'Listo',
@@ -489,6 +506,8 @@ const T = {
         'settings.display': 'Pantalla',
         'settings.minimalist': 'Modo Minimal',
         'settings.minimalistDesc': 'Solo números y anillo',
+        'settings.lightTheme': 'Modo Claro',
+        'settings.lightThemeDesc': 'Tema de fondo claro',
         'settings.warmupLabel': 'Calentamiento (60s)',
         'settings.warmupDesc': 'Preparación previa al ejercicio',
         'settings.cooldownLabel': 'Enfriamiento (60s)',
@@ -574,6 +593,8 @@ const T = {
         'preset.custom.name': 'Personalizado',
         'preset.custom.desc': 'Configura tu propio tiempo de trabajo, descanso y rondas para tu rutina ideal',
         'preset.total': 'Total {t}',
+        'meta.title': 'MyTabata — Temporizador Tabata',
+        'meta.description': 'Temporizador Tabata PWA gratuito. 8 presets de entrenamiento, intervalos personalizados, guía de voz, soporte offline.',
     },
 };
 let currentLang = 'en';
@@ -616,6 +637,22 @@ export function setLanguage(lang) {
     catch { /* ignore */ }
     document.documentElement.lang = lang;
     applyDataI18n();
+    updateMeta();
+}
+function updateMeta() {
+    const title = t('meta.title');
+    const desc = t('meta.description');
+    document.title = title;
+    const setMeta = (sel, val) => {
+        const el = document.querySelector(sel);
+        if (el)
+            el.content = val;
+    };
+    setMeta('meta[name="description"]', desc);
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', desc);
+    setMeta('meta[name="twitter:title"]', title);
+    setMeta('meta[name="twitter:description"]', desc);
 }
 function applyDataI18n() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -627,4 +664,5 @@ export function initI18n() {
     currentLang = detectLang();
     document.documentElement.lang = currentLang;
     applyDataI18n();
+    updateMeta();
 }
