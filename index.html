@@ -54,10 +54,10 @@
       <circle id="timer-circle" class="ring-progress" cx="60" cy="60" r="54" />
     </svg>
     <div class="timer-inner">
-      <div id="phase-label" class="phase-label" aria-live="polite">준비</div>
+      <div id="phase-label" class="phase-label" aria-live="polite" data-i18n="phase.idle">준비</div>
       <div id="timer-number" class="timer-number" role="timer" aria-live="off">20</div>
       <div id="round-label" class="round-label" aria-live="polite">0 / 8</div>
-      <div id="interval-display" class="interval-display">20s 운동 / 10s 휴식</div>
+      <div id="interval-display" class="interval-display"></div>
       <div id="elapsed-label" class="elapsed-label" style="display:none"></div>
       <div id="next-phase-label" class="next-phase-label" style="display:none"></div>
       <div id="summary-card" class="summary-card"></div>
@@ -72,9 +72,9 @@
     <button id="btn-reset" class="btn-secondary" aria-label="초기화">↺</button>
     <div class="start-wrapper">
       <div id="onboarding-tooltip" class="onboarding-tooltip" style="display:none">
-        탭하여 시작하세요 👆
+        <span data-i18n="onboarding.tooltip">탭하여 시작하세요 👆</span>
       </div>
-      <button id="btn-start" class="btn-primary" aria-label="시작">시작</button>
+      <button id="btn-start" class="btn-primary" aria-label="시작" data-i18n="btn.start">시작</button>
     </div>
   </div>
 
@@ -83,52 +83,52 @@
 <!-- ── 설정 패널 ── -->
 <div id="settings-panel" class="panel">
   <div class="panel-header">
-    <h2>설정</h2>
+    <h2 data-i18n="settings.title">설정</h2>
     <button id="btn-close-settings" aria-label="닫기">✕</button>
   </div>
   <div class="panel-body">
 
     <!-- 프리셋 -->
     <section class="section">
-      <h3>워크아웃 프리셋</h3>
+      <h3 data-i18n="settings.presets">워크아웃 프리셋</h3>
       <div id="preset-grid" class="preset-grid"></div>
     </section>
 
     <!-- 커스텀 설정 -->
     <section class="section">
-      <h3>커스텀 인터벌</h3>
+      <h3 data-i18n="settings.custom">커스텀 인터벌</h3>
       <div class="input-group">
         <div class="input-row">
-          <label for="input-work">운동 시간 (초)</label>
+          <label for="input-work" data-i18n="input.workTime">운동 시간 (초)</label>
           <input id="input-work" type="number" min="5" max="300" value="20" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-work" />
         </div>
         <div id="err-work" class="input-error" aria-live="polite"></div>
         <div class="input-row">
-          <label for="input-rest">휴식 시간 (초)</label>
+          <label for="input-rest" data-i18n="input.restTime">휴식 시간 (초)</label>
           <input id="input-rest" type="number" min="3" max="180" value="10" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rest" />
         </div>
         <div id="err-rest" class="input-error" aria-live="polite"></div>
         <div class="input-row">
-          <label for="input-rounds">라운드 수</label>
+          <label for="input-rounds" data-i18n="input.rounds">라운드 수</label>
           <input id="input-rounds" type="number" min="1" max="99" value="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rounds" />
         </div>
         <div id="err-rounds" class="input-error" aria-live="polite"></div>
       </div>
-      <button id="btn-apply-config" class="btn-outline">적용</button>
+      <button id="btn-apply-config" class="btn-outline" data-i18n="btn.apply">적용</button>
     </section>
 
     <!-- 워밍업 / 쿨다운 토글 (Sprint 6 Feature C) -->
     <section class="section">
-      <h3>워밍업 / 쿨다운</h3>
+      <h3 data-i18n="settings.warmupCooldown">워밍업 / 쿨다운</h3>
       <label class="toggle-row">
-        <span class="toggle-label">워밍업 (60초)</span>
-        <span class="toggle-desc">운동 전 준비 단계</span>
+        <span class="toggle-label" data-i18n="settings.warmupLabel">워밍업 (60초)</span>
+        <span class="toggle-desc" data-i18n="settings.warmupDesc">운동 전 준비 단계</span>
         <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
       <label class="toggle-row" style="margin-top:12px">
-        <span class="toggle-label">쿨다운 (60초)</span>
-        <span class="toggle-desc">운동 후 마무리 단계</span>
+        <span class="toggle-label" data-i18n="settings.cooldownLabel">쿨다운 (60초)</span>
+        <span class="toggle-desc" data-i18n="settings.cooldownDesc">운동 후 마무리 단계</span>
         <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
@@ -136,13 +136,25 @@
 
     <!-- 미니멀리스트 모드 토글 -->
     <section class="section">
-      <h3>디스플레이</h3>
+      <h3 data-i18n="settings.display">디스플레이</h3>
       <label class="toggle-row">
-        <span class="toggle-label">미니멀 모드</span>
-        <span class="toggle-desc">숫자와 링만 표시</span>
+        <span class="toggle-label" data-i18n="settings.minimalist">미니멀 모드</span>
+        <span class="toggle-desc" data-i18n="settings.minimalistDesc">숫자와 링만 표시</span>
         <input id="toggle-minimalist" type="checkbox" class="toggle-checkbox" aria-label="미니멀 모드 토글" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
+    </section>
+
+    <!-- 언어 선택 (Sprint 12) -->
+    <section class="section">
+      <h3 data-i18n="settings.language">언어</h3>
+      <select id="select-language" class="lang-select" aria-label="Language">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+        <option value="es">Español</option>
+      </select>
     </section>
 
     <!-- 앱 버전 표시 (Sprint 9 Feature E) -->
@@ -155,14 +167,14 @@
 <!-- ── 기록 패널 ── -->
 <div id="history-panel" class="panel">
   <div class="panel-header">
-    <h2>운동 기록</h2>
+    <h2 data-i18n="history.title">운동 기록</h2>
     <button id="btn-close-history" aria-label="닫기">✕</button>
   </div>
   <div class="panel-body">
     <!-- 주간 목표 카드 (Sprint 6 Feature D) -->
     <div id="weekly-goal-card" class="weekly-goal-card">
       <div class="weekly-goal-header">
-        <span class="weekly-goal-title">이번 주 목표</span>
+        <span class="weekly-goal-title" data-i18n="weekly.goal">이번 주 목표</span>
         <div class="weekly-goal-buttons">
           <button class="goal-btn" data-goal="3" aria-label="주 3회 목표">3회</button>
           <button class="goal-btn" data-goal="4" aria-label="주 4회 목표">4회</button>
@@ -183,15 +195,15 @@
     <div class="stats-row">
       <div class="stat-card">
         <div id="stats-total" class="stat-number">0</div>
-        <div class="stat-label">총 운동</div>
+        <div class="stat-label" data-i18n="history.total">총 운동</div>
       </div>
       <div class="stat-card">
         <div id="stats-week" class="stat-number">0</div>
-        <div class="stat-label">이번 주</div>
+        <div class="stat-label" data-i18n="history.thisWeek">이번 주</div>
       </div>
       <div class="stat-card">
         <div id="stats-streak" class="stat-number">0</div>
-        <div class="stat-label">연속 일수</div>
+        <div class="stat-label" data-i18n="history.streak">연속 일수</div>
       </div>
     </div>
     <div id="history-list" class="history-list"></div>
@@ -207,8 +219,8 @@
 
 <!-- ── PWA 설치 배너 (Sprint 9 Feature A) ── -->
 <div id="pwa-install-banner" class="pwa-install-banner" style="display:none" role="banner" aria-label="홈 화면 추가 안내">
-  <span class="pwa-install-text">📲 홈 화면에 추가하기</span>
-  <button id="btn-pwa-install" class="btn-pwa-install">추가</button>
+  <span class="pwa-install-text" data-i18n="pwa.install">📲 홈 화면에 추가하기</span>
+  <button id="btn-pwa-install" class="btn-pwa-install" data-i18n="pwa.add">추가</button>
   <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="배너 닫기">✕</button>
 </div>
 
@@ -216,9 +228,9 @@
 <div id="error-boundary" class="error-boundary" style="display:none" role="alert" aria-live="assertive">
   <div class="error-boundary-inner">
     <div class="error-boundary-emoji">😥</div>
-    <h2 class="error-boundary-title">앱을 불러오지 못했습니다</h2>
-    <p class="error-boundary-desc">새로고침하거나 일반 브라우징 모드에서 열어주세요.</p>
-    <button class="btn-primary" onclick="window.location.reload()">새로고침</button>
+    <h2 class="error-boundary-title" data-i18n="error.title">앱을 불러오지 못했습니다</h2>
+    <p class="error-boundary-desc" data-i18n="error.desc">새로고침하거나 일반 브라우징 모드에서 열어주세요.</p>
+    <button class="btn-primary" onclick="window.location.reload()" data-i18n="error.reload">새로고침</button>
   </div>
 </div>
 

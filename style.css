@@ -1133,6 +1133,27 @@ input  { font-family: inherit; }
   letter-spacing: 0.5px;
 }
 
+/* ── Sprint 12: 언어 선택 드롭다운 ── */
+.lang-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--surface2);
+  background: var(--surface1);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.lang-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ── Sprint 9 Feature F: Reduced Motion 접근성 지원 ── */
 @media (prefers-reduced-motion: reduce) {
   /* 배경 전환 즉시 처리 */
