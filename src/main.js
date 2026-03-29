@@ -326,8 +326,9 @@ function showToast(message) {
     toastEl.classList.add('show');
     setTimeout(() => { toastEl.classList.remove('show'); }, 3000);
 }
-async function shareWorkout(rounds, durationSeconds) {
-    const text = `타바타 ${rounds}라운드 완료! 💪 ${formatDuration(durationSeconds)} 달성했습니다. TabataGo로 함께해요!`;
+async function shareWorkout(rounds, durationSeconds, workDuration, restDuration) {
+    const interval = `${workDuration}s 운동 / ${restDuration}s 휴식`;
+    const text = `💪 TabataGo 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabatago.app`;
     if (typeof navigator.share === 'function') {
         try {
             await navigator.share({ title: 'TabataGo 운동 완료', text });
@@ -346,7 +347,7 @@ async function shareWorkout(rounds, durationSeconds) {
         }
     }
 }
-function showSummaryCard(rounds, durationSeconds, workDuration, streak) {
+function showSummaryCard(rounds, durationSeconds, workDuration, restDuration, streak) {
     stopCircleAnimation();
     elapsedLabel.style.display = 'none';
     timerNumber.style.display = 'none';
@@ -384,11 +385,11 @@ function showSummaryCard(rounds, durationSeconds, workDuration, streak) {
     summaryCard.classList.add('visible');
     // Feature B: 공유 버튼 이벤트
     const btnShare = document.getElementById('btn-share-workout');
-    btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds).catch(() => { }); });
+    btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration).catch(() => { }); });
     // Feature A: 업그레이드 배너 탭 → Pro 모달 열기 + 배너 숨기기
     const upgradeLink = document.getElementById('summary-upgrade-link');
     upgradeLink?.addEventListener('click', () => {
-        proModal.classList.add('open');
+        openPanel(proModal, upgradeLink);
         upgradeLink.style.display = 'none';
     });
 }
@@ -489,9 +490,9 @@ document.addEventListener('keydown', (e) => {
             btnReset.click();
             break;
         case 'Escape':
-            settingsPanel.classList.remove('open');
-            historyPanel.classList.remove('open');
-            proModal.classList.remove('open');
+            closePanel(settingsPanel);
+            closePanel(historyPanel);
+            closePanel(proModal);
             break;
     }
 });
@@ -750,7 +751,7 @@ timer.on(event => {
         workoutStartTime = null;
         // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
         const streak = premium.isPro() ? storage.getStats().streak : 0;
-        showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, streak);
+        showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, streak);
         // 배경 틴트 리셋 (Sprint 4 Feature C)
         setBodyTint('complete');
         // Sprint 9 Feature A: 첫 완료 운동 후 PWA 설치 배너 표시
@@ -794,8 +795,8 @@ btnStart.addEventListener('click', () => {
     const state = timer.getState();
     if (state.phase === 'complete' || state.phase === 'idle') {
         // Sprint 7 Feature F: 시작 시 설정/기록 패널 닫기 + 타이머로 스크롤
-        settingsPanel.classList.remove('open');
-        historyPanel.classList.remove('open');
+        closePanel(settingsPanel);
+        closePanel(historyPanel);
         document.querySelector('.timer-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         hideSummaryCard();
         timer.reset();
@@ -847,23 +848,74 @@ btnReset.addEventListener('click', () => {
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+// ── Sprint 10: 포커스 트랩 (접근성) ──────────────────────
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+function trapFocus(container, returnFocusEl) {
+    const getFocusable = () => Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR));
+    const focusables = getFocusable();
+    focusables[0]?.focus();
+    function onKeyDown(e) {
+        if (e.key !== 'Tab')
+            return;
+        const els = getFocusable();
+        if (els.length === 0) {
+            e.preventDefault();
+            return;
+        }
+        const first = els[0];
+        const last = els[els.length - 1];
+        if (e.shiftKey) {
+            if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+        }
+        else {
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    }
+    container.addEventListener('keydown', onKeyDown);
+    return () => {
+        container.removeEventListener('keydown', onKeyDown);
+        returnFocusEl?.focus();
+    };
+}
+const panelTrapCleanups = new Map();
+function openPanel(panel, trigger) {
+    panel.classList.add('open');
+    const existing = panelTrapCleanups.get(panel);
+    if (existing)
+        existing();
+    panelTrapCleanups.set(panel, trapFocus(panel, trigger));
+}
+function closePanel(panel) {
+    panel.classList.remove('open');
+    const cleanup = panelTrapCleanups.get(panel);
+    if (cleanup) {
+        cleanup();
+        panelTrapCleanups.delete(panel);
+    }
+}
 // 설정 패널
-btnSettings.addEventListener('click', () => settingsPanel.classList.add('open'));
+btnSettings.addEventListener('click', () => openPanel(settingsPanel, btnSettings));
 btnClose.addEventListener('click', () => {
-    settingsPanel.classList.remove('open');
+    closePanel(settingsPanel);
     scrollToTop();
 });
 // 기록 패널 (Pro)
 btnHistory.addEventListener('click', () => {
     if (!premium.isPro()) {
-        proModal.classList.add('open');
+        openPanel(proModal, btnHistory);
         return;
     }
     renderHistory();
-    historyPanel.classList.add('open');
+    openPanel(historyPanel, btnHistory);
 });
 btnCloseHistory.addEventListener('click', () => {
-    historyPanel.classList.remove('open');
+    closePanel(historyPanel);
     scrollToTop();
 });
 // ── 볼륨 토글 (Feature D: 3단계) ────────────────────────
@@ -890,7 +942,7 @@ btnVoice.addEventListener('click', () => {
 });
 // Pro 모달
 btnBuyPro.addEventListener('click', () => premium.openPurchasePage());
-btnClosePro.addEventListener('click', () => proModal.classList.remove('open'));
+btnClosePro.addEventListener('click', () => closePanel(proModal));
 // ── Sprint 7 Feature C: 입력 실시간 검증 이벤트 ────────────
 function attachInputValidation() {
     inputWork.addEventListener('input', () => validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }));
@@ -900,7 +952,7 @@ function attachInputValidation() {
 // 설정 적용 (Pro: 커스텀 인터벌)
 btnApplyConfig.addEventListener('click', () => {
     if (!premium.isPro()) {
-        proModal.classList.add('open');
+        openPanel(proModal, btnApplyConfig);
         return;
     }
     // Sprint 7 Feature C: 적용 전 입력값 검증
@@ -935,7 +987,7 @@ btnApplyConfig.addEventListener('click', () => {
     // Sprint 7 Feature D: 커스텀 설정 적용 시 프리셋 active 해제
     activePresetId = null;
     renderPresets();
-    settingsPanel.classList.remove('open');
+    closePanel(settingsPanel);
     scrollToTop();
 });
 // ── 프리셋 렌더링 (Pro) ───────────────────────────────────
@@ -964,7 +1016,7 @@ function renderPresets() {
     presetGrid.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (btn.dataset['locked']) {
-                proModal.classList.add('open');
+                openPanel(proModal, btn);
                 return;
             }
             const preset = PRESETS.find(p => p.id === btn.dataset['id']);
@@ -990,7 +1042,7 @@ function renderPresets() {
             // Sprint 7 Feature D: 활성 프리셋 표시
             activePresetId = preset.id;
             renderPresets();
-            settingsPanel.classList.remove('open');
+            closePanel(settingsPanel);
             scrollToTop();
         });
     });
@@ -1155,6 +1207,12 @@ btnPwaInstall.addEventListener('click', () => {
 btnPwaDismiss.addEventListener('click', () => {
     markPwaInstallDismissed();
     hidePwaInstallBanner();
+});
+// ── 오버레이 클릭으로 패널/모달 닫기 ────────────────────
+document.getElementById('panel-overlay')?.addEventListener('click', () => {
+    closePanel(settingsPanel);
+    closePanel(historyPanel);
+    closePanel(proModal);
 });
 // ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" 링크 ──
 btnContinueFree.addEventListener('click', (e) => {
