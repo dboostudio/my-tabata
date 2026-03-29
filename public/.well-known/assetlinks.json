@@ -1,12 +1,8 @@
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "my.tabata.twa",
-      "sha256_cert_fingerprints": [
-        "TODO:REPLACE_WITH_ACTUAL_SHA256_FINGERPRINT"
-      ]
-    }
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "my.tabata.twa",
+    "sha256_cert_fingerprints": ["EF:03:65:EB:87:5D:77:65:65:F2:A2:40:C1:E4:36:9F:34:BE:04:BB:55:E6:E3:5B:E3:6D:65:E4:82:BB:3F:19"]
   }
-]
+}]
