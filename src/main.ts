@@ -49,6 +49,7 @@ const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const btnSavePreset     = $<HTMLButtonElement>('#btn-save-preset')
+const estimatedTimeEl   = $('#estimated-time')
 const customPresetList  = $('#custom-preset-list')
 const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
 const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
@@ -866,6 +867,12 @@ timer.on(event => {
       if (phase === 'rest') speech.restStart()
     }
 
+    // 반환점 알림 (전체 라운드의 절반)
+    if (phase === 'work' && state.config.totalRounds >= 4) {
+      const halfRound = Math.ceil(state.config.totalRounds / 2) + 1
+      if (round === halfRound) showToast(t('misc.halfway'))
+    }
+
     // 운동 시작 시간 기록 + 경과 타이머 시작 (워밍업 있으면 워밍업 시작 시 기록)
     if ((phase === 'warmup') || (phase === 'work' && round === 1 && !timer.hasWarmup())) {
       workoutStartTime = new Date()
@@ -889,6 +896,14 @@ timer.on(event => {
 
     // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
     updateSvgAriaLabel(phase, timeRemaining, state.currentRound, state.config.totalRounds)
+
+    // 마지막 3초 시각적 강조 (work/rest)
+    if ((phase === 'work' || phase === 'rest') && timeRemaining <= 3 && timeRemaining > 0) {
+      timerNumber.classList.add('countdown-warn')
+      audio.countdown(timeRemaining)
+    } else {
+      timerNumber.classList.remove('countdown-warn')
+    }
 
     // 카운트다운 틱음
     if (phase === 'countdown') {
@@ -1138,10 +1153,18 @@ btnVoice.addEventListener('click', () => {
 
 // ── Sprint 7 Feature C: 입력 실시간 검증 이벤트 ────────────
 
+function updateEstimatedTime(): void {
+  const w = Number(inputWork.value) || 0
+  const r = Number(inputRest.value) || 0
+  const n = Number(inputRounds.value) || 0
+  const total = (w + r) * n + 3 // +3 for countdown
+  estimatedTimeEl.textContent = t('misc.estimatedTime', { t: formatDuration(total) })
+}
+
 function attachInputValidation(): void {
-  inputWork.addEventListener('input', () => validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }))
-  inputRest.addEventListener('input', () => validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest }))
-  inputRounds.addEventListener('input', () => validateRoundsInput())
+  inputWork.addEventListener('input', () => { validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }); updateEstimatedTime() })
+  inputRest.addEventListener('input', () => { validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest }); updateEstimatedTime() })
+  inputRounds.addEventListener('input', () => { validateRoundsInput(); updateEstimatedTime() })
 }
 
 // ── 설정 적용 ──────────────────────────────────────────────
@@ -1600,6 +1623,7 @@ function init(): void {
 
   // Sprint 7 Feature C: 입력 실시간 검증
   attachInputValidation()
+  updateEstimatedTime()
 
   // 미니멀리스트 모드 초기화 (Sprint 5)
   applyMinimalistMode(loadMinimalistMode())
