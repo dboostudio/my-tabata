@@ -33,6 +33,13 @@ export const PRESETS: Preset[] = [
     config: { workDuration: 40, restDuration: 20, totalRounds: 8, countdownDuration: 3, warmupDuration: 0, cooldownDuration: 0 },
   },
   {
+    id: 'balance-30',
+    name: '30-30 밸런스',
+    emoji: '⏱️',
+    description: '1:1 균형 비율로 안정적인 페이스 유지. 초~중급자에게 이상적인 범용 인터벌',
+    config: { workDuration: 30, restDuration: 30, totalRounds: 8, countdownDuration: 3, warmupDuration: 0, cooldownDuration: 0 },
+  },
+  {
     id: 'sprint',
     name: '스프린트',
     emoji: '💨',
@@ -59,12 +66,5 @@ export const PRESETS: Preset[] = [
     emoji: '🌱',
     description: '높은 휴식 비율로 부상 방지. 인터벌 트레이닝을 처음 접하는 분께 추천',
     config: { workDuration: 20, restDuration: 30, totalRounds: 6, countdownDuration: 5, warmupDuration: 0, cooldownDuration: 0 },
-  },
-  {
-    id: 'custom',
-    name: '커스텀',
-    emoji: '⚙️',
-    description: '운동·휴식 시간과 라운드를 직접 설정해 나만의 루틴을 만드세요',
-    config: { workDuration: 20, restDuration: 10, totalRounds: 8, countdownDuration: 3, warmupDuration: 0, cooldownDuration: 0 },
   },
 ]

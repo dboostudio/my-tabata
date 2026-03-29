@@ -1298,15 +1298,20 @@ input:focus-visible {
 }
 
 /* ── Sprint 17: 커스텀 프리셋 ── */
-.custom-preset-actions {
-  display: flex;
-  gap: 8px;
+.btn-save-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 8px;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
 }
-.custom-preset-actions .btn-outline { flex: 1; }
-.btn-save-preset {
-  border-color: var(--color-complete) !important;
-  color: var(--color-complete) !important;
-}
+.btn-save-link:hover { color: var(--color-complete); }
 .custom-preset-title {
   font-size: 0.85rem;
   color: var(--text-muted);

@@ -51,7 +51,6 @@ const heatmapEl         = $('#heatmap')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
-const btnSavePreset     = $<HTMLButtonElement>('#btn-save-preset')
 const estimatedTimeEl   = $('#estimated-time')
 const welcomeModal      = $('#welcome-modal')
 const customPresetList  = $('#custom-preset-list')
@@ -577,7 +576,7 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
 }
 
 function getNextPresetSuggestion(): string {
-  const others = PRESETS.filter(p => p.id !== 'custom' && p.id !== activePresetId)
+  const others = PRESETS.filter(p => p.id !== activePresetId)
   if (others.length === 0) return ''
   const pick = others[Math.floor(Math.random() * others.length)]!
   return `
@@ -1105,7 +1104,7 @@ btnStart.addEventListener('click', () => {
     timer.reset()
     timer.start()
     acquireWakeLock()
-    analytics.workoutStart(activePresetId ?? 'custom', timer.getState().config.totalRounds)
+    analytics.workoutStart(activePresetId ?? 'manual', timer.getState().config.totalRounds)
   } else if (state.isRunning) {
     timer.pause()
     stopCircleAnimation()
@@ -1298,7 +1297,7 @@ btnApplyConfig.addEventListener('click', () => {
     cooldownEnabled: toggleCooldown.checked,
   })
   // Sprint 7 Feature D: 커스텀 설정 적용 시 프리셋 active 해제
-  activePresetId = null
+  activePresetId = 'custom'
   renderPresets()
   closePanel(settingsPanel)
   scrollToTop()
@@ -1322,7 +1321,7 @@ function renderPresets(): void {
         <span class="preset-name">${name}</span>
       </div>
       <span class="preset-description">${desc}</span>
-      ${p.id !== 'custom' ? `<span class="preset-duration">${t('preset.total', { t: totalBadge })}</span>` : ''}
+      <span class="preset-duration">${t('preset.total', { t: totalBadge })}</span>
     </button>`
   }).join('')
 
@@ -1330,12 +1329,6 @@ function renderPresets(): void {
     btn.addEventListener('click', () => {
       const preset = PRESETS.find(p => p.id === btn.dataset['id'])
       if (!preset) return
-
-      // 커스텀: 설정 섹션으로 스크롤 이동
-      if (preset.id === 'custom') {
-        document.querySelector('.section:has(#btn-apply-config)')?.scrollIntoView({ behavior: 'smooth' })
-        return
-      }
 
       timer.reset()
       timer.updateConfig(preset.config)
@@ -1363,8 +1356,11 @@ function renderPresets(): void {
 
 function renderCustomPresets(): void {
   const presets = storage.getCustomPresets()
+  const saveLink = `<button class="btn-save-link" id="btn-save-link">💾 ${t('btn.savePreset')}</button>`
+
   if (presets.length === 0) {
-    customPresetList.innerHTML = ''
+    customPresetList.innerHTML = saveLink
+    document.getElementById('btn-save-link')?.addEventListener('click', handleSavePreset)
     return
   }
   customPresetList.innerHTML = `
@@ -1376,7 +1372,10 @@ function renderCustomPresets(): void {
         <button class="custom-preset-use" data-id="${p.id}">▶</button>
         <button class="custom-preset-del" data-id="${p.id}">✕</button>
       </div>
-    `).join('')}`
+    `).join('')}
+    ${saveLink}`
+
+  document.getElementById('btn-save-link')?.addEventListener('click', handleSavePreset)
 
   customPresetList.querySelectorAll<HTMLButtonElement>('.custom-preset-use').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1408,7 +1407,7 @@ function renderCustomPresets(): void {
   })
 }
 
-btnSavePreset.addEventListener('click', () => {
+function handleSavePreset(): void {
   const work = Number(inputWork.value)
   const rest = Number(inputRest.value)
   const rounds = Number(inputRounds.value)
@@ -1420,7 +1419,7 @@ btnSavePreset.addEventListener('click', () => {
   storage.saveCustomPreset({ name: name.trim(), workDuration: work, restDuration: rest, totalRounds: rounds })
   showToast(t('preset.saved'))
   renderCustomPresets()
-})
+}
 
 // ── 히트맵 렌더링 (Sprint 16) ────────────────────────────
 
