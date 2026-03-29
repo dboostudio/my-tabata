@@ -883,7 +883,7 @@ btnStart.addEventListener('click', () => {
     stopCircleAnimation()
     // Sprint 8 Feature B: 일시정지 시 링 점선 인디케이터
     setRingPaused(true)
-    btnStart.textContent = '재개'
+    btnStart.textContent = t('btn.resume')
     releaseWakeLock()
   } else {
     timer.resume()

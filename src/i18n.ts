@@ -156,6 +156,23 @@ const T: Record<Lang, Record<string, string>> = {
     'preset.custom.desc': '운동·휴식 시간과 라운드를 직접 설정해 나만의 루틴을 만드세요',
     'preset.total': '총 {t}',
     // 메타/SEO
+    // aria / title
+    'aria.voice':     '음성 안내 토글',
+    'aria.history':   '운동 기록',
+    'aria.settings':  '설정',
+    'aria.reset':     '초기화',
+    'aria.close':     '닫기',
+    'aria.warmup':    '워밍업 토글',
+    'aria.cooldown':  '쿨다운 토글',
+    'aria.minimalist':'미니멀 모드 토글',
+    'aria.lightMode': '라이트 모드 토글',
+    'aria.dismiss':   '배너 닫기',
+    'aria.goal3':     '주 3회 목표',
+    'aria.goal4':     '주 4회 목표',
+    'aria.goal5':     '주 5회 목표',
+    'title.voice':    '음성 안내',
+    'title.history':  '운동 기록',
+    'title.settings': '설정',
     'meta.title': 'MyTabata — 타바타 타이머',
     'meta.description': '무료 타바타 인터벌 타이머 PWA. 8가지 워크아웃 프리셋, 커스텀 인터벌, 음성 안내, 오프라인 지원.',
     // SEO
@@ -284,6 +301,22 @@ const T: Record<Lang, Record<string, string>> = {
     'preset.custom.name': 'Custom',
     'preset.custom.desc': 'Set your own work/rest times and rounds for a personalized routine',
     'preset.total': 'Total {t}',
+    'aria.voice':     'Toggle voice guidance',
+    'aria.history':   'Workout log',
+    'aria.settings':  'Settings',
+    'aria.reset':     'Reset',
+    'aria.close':     'Close',
+    'aria.warmup':    'Toggle warm-up',
+    'aria.cooldown':  'Toggle cool-down',
+    'aria.minimalist':'Toggle minimal mode',
+    'aria.lightMode': 'Toggle light mode',
+    'aria.dismiss':   'Dismiss banner',
+    'aria.goal3':     '3 times/week goal',
+    'aria.goal4':     '4 times/week goal',
+    'aria.goal5':     '5 times/week goal',
+    'title.voice':    'Voice guidance',
+    'title.history':  'Workout log',
+    'title.settings': 'Settings',
     'meta.title': 'MyTabata — Tabata Timer',
     'meta.description': 'Free Tabata interval timer PWA. 8 workout presets, custom intervals, voice guidance, offline support.',
     'seo.title': 'What is Tabata Training?',
@@ -411,6 +444,7 @@ const T: Record<Lang, Record<string, string>> = {
     'preset.custom.name': 'カスタム',
     'preset.custom.desc': '運動・休憩時間とラウンドを自分で設定してオリジナルルーティンを作ろう',
     'preset.total': '合計 {t}',
+    'aria.voice':'音声ガイド切替','aria.history':'運動記録','aria.settings':'設定','aria.reset':'リセット','aria.close':'閉じる','aria.warmup':'ウォームアップ切替','aria.cooldown':'クールダウン切替','aria.minimalist':'ミニマルモード切替','aria.lightMode':'ライトモード切替','aria.dismiss':'バナーを閉じる','aria.goal3':'週3回目標','aria.goal4':'週4回目標','aria.goal5':'週5回目標','title.voice':'音声ガイド','title.history':'運動記録','title.settings':'設定',
     'meta.title': 'MyTabata — タバタタイマー',
     'meta.description': '無料タバタインターバルタイマーPWA。8つのワークアウトプリセット、カスタムインターバル、音声ガイド、オフライン対応。',
     'seo.title': 'タバタトレーニングとは？',
@@ -538,6 +572,7 @@ const T: Record<Lang, Record<string, string>> = {
     'preset.custom.name': '自定义',
     'preset.custom.desc': '自定义运动、休息时间和轮数，创建专属训练方案',
     'preset.total': '共 {t}',
+    'aria.voice':'语音引导切换','aria.history':'运动记录','aria.settings':'设置','aria.reset':'重置','aria.close':'关闭','aria.warmup':'热身切换','aria.cooldown':'冷却切换','aria.minimalist':'简约模式切换','aria.lightMode':'浅色模式切换','aria.dismiss':'关闭横幅','aria.goal3':'每周3次目标','aria.goal4':'每周4次目标','aria.goal5':'每周5次目标','title.voice':'语音引导','title.history':'运动记录','title.settings':'设置',
     'meta.title': 'MyTabata — Tabata计时器',
     'meta.description': '免费Tabata间歇计时器PWA。8种训练预设、自定义间隔、语音引导、离线支持。',
     'seo.title': '什么是Tabata训练？',
@@ -665,6 +700,7 @@ const T: Record<Lang, Record<string, string>> = {
     'preset.custom.name': 'Personalizado',
     'preset.custom.desc': 'Configura tu propio tiempo de trabajo, descanso y rondas para tu rutina ideal',
     'preset.total': 'Total {t}',
+    'aria.voice':'Activar guía de voz','aria.history':'Registro','aria.settings':'Ajustes','aria.reset':'Reiniciar','aria.close':'Cerrar','aria.warmup':'Activar calentamiento','aria.cooldown':'Activar enfriamiento','aria.minimalist':'Modo minimal','aria.lightMode':'Modo claro','aria.dismiss':'Cerrar banner','aria.goal3':'Meta 3 veces/semana','aria.goal4':'Meta 4 veces/semana','aria.goal5':'Meta 5 veces/semana','title.voice':'Guía de voz','title.history':'Registro','title.settings':'Ajustes',
     'meta.title': 'MyTabata — Temporizador Tabata',
     'meta.description': 'Temporizador Tabata PWA gratuito. 8 presets de entrenamiento, intervalos personalizados, guía de voz, soporte offline.',
     'seo.title': '¿Qué es el entrenamiento Tabata?',
@@ -742,6 +778,14 @@ function applyDataI18n(): void {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach(el => {
     const key = el.dataset['i18n']!
     el.textContent = t(key)
+  })
+  document.querySelectorAll<HTMLElement>('[data-i18n-aria]').forEach(el => {
+    const key = el.dataset['i18nAria']!
+    el.setAttribute('aria-label', t(key))
+  })
+  document.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach(el => {
+    const key = el.dataset['i18nTitle']!
+    el.title = t(key)
   })
 }
 

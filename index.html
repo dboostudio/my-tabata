@@ -69,9 +69,9 @@
 <header class="header">
   <div class="logo">MyTabata</div>
   <div class="header-actions">
-    <button id="btn-voice" title="음성 안내" aria-label="음성 안내 토글">🔈</button>
-    <button id="btn-history" title="운동 기록" aria-label="운동 기록">📊</button>
-    <button id="btn-settings" title="설정" aria-label="설정">⚙️</button>
+    <button id="btn-voice" title="음성 안내" aria-label="음성 안내 토글" data-i18n-aria="aria.voice" data-i18n-title="title.voice">🔈</button>
+    <button id="btn-history" title="운동 기록" aria-label="운동 기록" data-i18n-aria="aria.history" data-i18n-title="title.history">📊</button>
+    <button id="btn-settings" title="설정" aria-label="설정" data-i18n-aria="aria.settings" data-i18n-title="title.settings">⚙️</button>
   </div>
 </header>
 
@@ -101,7 +101,7 @@
 
   <!-- 컨트롤 버튼 -->
   <div class="controls">
-    <button id="btn-reset" class="btn-secondary" aria-label="초기화">↺</button>
+    <button id="btn-reset" class="btn-secondary" aria-label="초기화" data-i18n-aria="aria.reset">↺</button>
     <div class="start-wrapper">
       <div id="onboarding-tooltip" class="onboarding-tooltip" style="display:none">
         <span data-i18n="onboarding.tooltip">탭하여 시작하세요 👆</span>
@@ -116,7 +116,7 @@
 <div id="settings-panel" class="panel">
   <div class="panel-header">
     <h2 data-i18n="settings.title">설정</h2>
-    <button id="btn-close-settings" aria-label="닫기">✕</button>
+    <button id="btn-close-settings" aria-label="닫기" data-i18n-aria="aria.close">✕</button>
   </div>
   <div class="panel-body">
 
@@ -155,13 +155,13 @@
       <label class="toggle-row">
         <span class="toggle-label" data-i18n="settings.warmupLabel">워밍업 (60초)</span>
         <span class="toggle-desc" data-i18n="settings.warmupDesc">운동 전 준비 단계</span>
-        <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" />
+        <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" data-i18n-aria="aria.warmup" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
       <label class="toggle-row" style="margin-top:12px">
         <span class="toggle-label" data-i18n="settings.cooldownLabel">쿨다운 (60초)</span>
         <span class="toggle-desc" data-i18n="settings.cooldownDesc">운동 후 마무리 단계</span>
-        <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" />
+        <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" data-i18n-aria="aria.cooldown" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
     </section>
@@ -172,13 +172,13 @@
       <label class="toggle-row">
         <span class="toggle-label" data-i18n="settings.minimalist">미니멀 모드</span>
         <span class="toggle-desc" data-i18n="settings.minimalistDesc">숫자와 링만 표시</span>
-        <input id="toggle-minimalist" type="checkbox" class="toggle-checkbox" aria-label="미니멀 모드 토글" />
+        <input id="toggle-minimalist" type="checkbox" class="toggle-checkbox" aria-label="미니멀 모드 토글" data-i18n-aria="aria.minimalist" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
       <label class="toggle-row" style="margin-top:12px">
         <span class="toggle-label" data-i18n="settings.lightTheme">라이트 모드</span>
         <span class="toggle-desc" data-i18n="settings.lightThemeDesc">밝은 배경 테마</span>
-        <input id="toggle-theme" type="checkbox" class="toggle-checkbox" aria-label="라이트 모드 토글" />
+        <input id="toggle-theme" type="checkbox" class="toggle-checkbox" aria-label="라이트 모드 토글" data-i18n-aria="aria.lightMode" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
     </section>
@@ -206,7 +206,7 @@
 <div id="history-panel" class="panel">
   <div class="panel-header">
     <h2 data-i18n="history.title">운동 기록</h2>
-    <button id="btn-close-history" aria-label="닫기">✕</button>
+    <button id="btn-close-history" aria-label="닫기" data-i18n-aria="aria.close">✕</button>
   </div>
   <div class="panel-body">
     <!-- 주간 목표 카드 (Sprint 6 Feature D) -->
@@ -214,9 +214,9 @@
       <div class="weekly-goal-header">
         <span class="weekly-goal-title" data-i18n="weekly.goal">이번 주 목표</span>
         <div class="weekly-goal-buttons">
-          <button class="goal-btn" data-goal="3" aria-label="주 3회 목표">3회</button>
-          <button class="goal-btn" data-goal="4" aria-label="주 4회 목표">4회</button>
-          <button class="goal-btn" data-goal="5" aria-label="주 5회 목표">5회</button>
+          <button class="goal-btn" data-goal="3" aria-label="주 3회 목표" data-i18n-aria="aria.goal3">3</button>
+          <button class="goal-btn" data-goal="4" aria-label="주 4회 목표" data-i18n-aria="aria.goal4">4</button>
+          <button class="goal-btn" data-goal="5" aria-label="주 5회 목표" data-i18n-aria="aria.goal5">5</button>
         </div>
       </div>
       <div id="weekly-goal-progress" class="weekly-goal-progress" style="display:none">
@@ -259,7 +259,7 @@
 <div id="pwa-install-banner" class="pwa-install-banner" style="display:none" role="banner" aria-label="홈 화면 추가 안내">
   <span class="pwa-install-text" data-i18n="pwa.install">📲 홈 화면에 추가하기</span>
   <button id="btn-pwa-install" class="btn-pwa-install" data-i18n="pwa.add">추가</button>
-  <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="배너 닫기">✕</button>
+  <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="배너 닫기" data-i18n-aria="aria.dismiss">✕</button>
 </div>
 
 <!-- ── SEO 랜딩 콘텐츠 (Sprint 15) ── -->
