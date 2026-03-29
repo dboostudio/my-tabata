@@ -1,12 +1,9 @@
 // 📄 src/storage.ts — 운동 기록 관리
 
 const HISTORY_KEY = 'tabatago_history'
-const WEEKLY_GOAL_KEY = 'tabatago_weekly_goal'
 const CUSTOM_PRESETS_KEY = 'tabata_custom_presets'
 const MAX_RECORDS = 100
 const MAX_CUSTOM_PRESETS = 10
-
-export type WeeklyGoal = 3 | 4 | 5 | null
 
 export interface CustomPreset {
   id: string
@@ -45,29 +42,6 @@ export class WorkoutStorage {
     localStorage.removeItem(HISTORY_KEY)
   }
 
-  getWeeklyGoal(): WeeklyGoal {
-    try {
-      const raw = localStorage.getItem(WEEKLY_GOAL_KEY)
-      if (!raw) return null
-      const n = Number(raw)
-      if (n === 3 || n === 4 || n === 5) return n
-      return null
-    } catch {
-      return null
-    }
-  }
-
-  setWeeklyGoal(goal: WeeklyGoal): void {
-    try {
-      if (goal === null) {
-        localStorage.removeItem(WEEKLY_GOAL_KEY)
-      } else {
-        localStorage.setItem(WEEKLY_GOAL_KEY, String(goal))
-      }
-    } catch {
-      // localStorage 미지원 환경 무시
-    }
-  }
 
   getStats(): {
     total: number; thisWeek: number; streak: number;

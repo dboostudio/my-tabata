@@ -60,11 +60,6 @@ const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
 const errWork           = $('#err-work')
 const errRest           = $('#err-rest')
 const errRounds         = $('#err-rounds')
-const weeklyGoalCard    = $('#weekly-goal-card')
-const weeklyGoalProgress = $('#weekly-goal-progress')
-const weeklyGoalCount   = $('#weekly-goal-count')
-const weeklyGoalMessage = $('#weekly-goal-message')
-const goalRingFill      = document.querySelector<SVGCircleElement>('#goal-ring-fill')!
 const toastEl           = $('#toast')
 // Sprint 9
 const pwaInstallBanner  = $('#pwa-install-banner')
@@ -1014,7 +1009,10 @@ timer.on(event => {
       ? Math.round((Date.now() - workoutStartTime.getTime()) / 1000)
       : (config.workDuration + config.restDuration) * config.totalRounds + config.countdownDuration
 
-    // 운동 기록 저장 먼저 (Sprint 4 Feature D: 저장 후 streak 조회해야 당일 반영)
+    // PR 체크를 위해 저장 전 기존 기록 확인
+    const prevStats = storage.getStats()
+
+    // 운동 기록 저장
     if (workoutStartTime) {
       storage.saveWorkout({
         date: new Date().toISOString(),
@@ -1027,9 +1025,19 @@ timer.on(event => {
     workoutStartTime = null
 
     // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
-    const streak = storage.getStats().streak
-    showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, streak)
+    const stats = storage.getStats()
+    showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, stats.streak)
     analytics.workoutComplete(config.totalRounds, durationSeconds, config.workDuration, config.restDuration)
+
+    // PR 갱신 알림
+    if (prevStats.total > 0) {
+      if (durationSeconds > prevStats.totalMinutes * 60 / prevStats.total * 1.5) {
+        setTimeout(() => showToast(t('pr.longestSession')), 1500)
+      }
+      if (stats.streak > prevStats.bestStreak && stats.streak >= 3) {
+        setTimeout(() => showToast(t('pr.bestStreak', { n: stats.streak })), 1500)
+      }
+    }
 
     // 배경 틴트 리셋 (Sprint 4 Feature C)
     setBodyTint('complete')
@@ -1408,55 +1416,6 @@ btnSavePreset.addEventListener('click', () => {
   renderCustomPresets()
 })
 
-// ── 주간 목표 (Sprint 6 Feature D) ───────────────────────
-
-const GOAL_RING_CIRCUMFERENCE = 2 * Math.PI * 14  // r=14
-
-function renderWeeklyGoal(): void {
-  const goal = storage.getWeeklyGoal()
-  const stats = storage.getStats()
-  const thisWeek = stats.thisWeek
-
-  // 목표 버튼 활성화 상태 업데이트 + 클릭 핸들러 연결 (Sprint 6 Feature D 버그 수정)
-  weeklyGoalCard.querySelectorAll<HTMLButtonElement>('.goal-btn').forEach(btn => {
-    const btnGoal = Number(btn.dataset['goal']) as 3 | 4 | 5
-    btn.classList.toggle('active', goal !== null && btnGoal === goal)
-    // 클릭 시 목표 저장 → 재렌더
-    btn.onclick = () => {
-      const current = storage.getWeeklyGoal()
-      // 이미 선택된 버튼 탭 시 목표 해제 (토글)
-      storage.setWeeklyGoal(current === btnGoal ? null : btnGoal)
-      renderWeeklyGoal()
-    }
-  })
-
-  if (goal === null) {
-    weeklyGoalProgress.style.display = 'none'
-    return
-  }
-
-  weeklyGoalProgress.style.display = 'flex'
-  const completed = Math.min(thisWeek, goal)
-  const achieved = completed >= goal
-
-  // 링 채우기
-  const pct = goal > 0 ? completed / goal : 0
-  goalRingFill.style.strokeDasharray = String(GOAL_RING_CIRCUMFERENCE)
-  goalRingFill.style.strokeDashoffset = String(GOAL_RING_CIRCUMFERENCE * (1 - pct))
-  goalRingFill.classList.toggle('achieved', achieved)
-
-  weeklyGoalCount.textContent = t('weekly.count', { c: completed, g: goal })
-
-  let message = ''
-  if (achieved) {
-    message = t('weekly.achieved')
-  } else {
-    const remaining = goal - completed
-    message = remaining === 1 ? t('weekly.oneMore') : t('weekly.remaining', { n: remaining })
-  }
-  weeklyGoalMessage.textContent = message
-}
-
 // ── 히트맵 렌더링 (Sprint 16) ────────────────────────────
 
 function renderHeatmap(): void {
@@ -1611,7 +1570,6 @@ function renderHistory(): void {
   renderHistoryItems()
   renderHeatmap()
   renderHistoryDeleteArea()
-  renderWeeklyGoal()
 }
 
 
