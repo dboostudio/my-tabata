@@ -69,9 +69,15 @@
 <header class="header">
   <div class="logo">MyTabata</div>
   <div class="header-actions">
-    <button id="btn-voice" title="음성 안내" aria-label="음성 안내 토글" data-i18n-aria="aria.voice" data-i18n-title="title.voice">🔈</button>
-    <button id="btn-history" title="운동 기록" aria-label="운동 기록" data-i18n-aria="aria.history" data-i18n-title="title.history">📊</button>
-    <button id="btn-settings" title="설정" aria-label="설정" data-i18n-aria="aria.settings" data-i18n-title="title.settings">⚙️</button>
+    <button id="btn-voice" title="음성 안내" aria-label="음성 안내 토글" data-i18n-aria="aria.voice" data-i18n-title="title.voice">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+    </button>
+    <button id="btn-history" title="운동 기록" aria-label="운동 기록" data-i18n-aria="aria.history" data-i18n-title="title.history">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    </button>
+    <button id="btn-settings" title="설정" aria-label="설정" data-i18n-aria="aria.settings" data-i18n-title="title.settings">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
 </header>
 
@@ -101,7 +107,9 @@
 
   <!-- 컨트롤 버튼 -->
   <div class="controls">
-    <button id="btn-reset" class="btn-secondary" aria-label="초기화" data-i18n-aria="aria.reset">↺</button>
+    <button id="btn-reset" class="btn-secondary" aria-label="초기화" data-i18n-aria="aria.reset">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    </button>
     <div class="start-wrapper">
       <div id="onboarding-tooltip" class="onboarding-tooltip" style="display:none">
         <span data-i18n="onboarding.tooltip">탭하여 시작하세요 👆</span>
@@ -247,6 +255,18 @@
       <div class="stat-card">
         <div id="stats-streak" class="stat-number">0</div>
         <div class="stat-label" data-i18n="history.streak">연속 일수</div>
+      </div>
+      <div class="stat-card">
+        <div id="stats-total-min" class="stat-number">0</div>
+        <div class="stat-label" data-i18n="history.totalMin">총 시간(분)</div>
+      </div>
+      <div class="stat-card">
+        <div id="stats-avg-min" class="stat-number">0</div>
+        <div class="stat-label" data-i18n="history.avgMin">평균(분)</div>
+      </div>
+      <div class="stat-card">
+        <div id="stats-best-streak" class="stat-number">0</div>
+        <div class="stat-label" data-i18n="history.bestStreak">최장 연속</div>
       </div>
     </div>
     <div id="heatmap" class="heatmap"></div>

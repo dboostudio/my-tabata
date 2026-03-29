@@ -36,6 +36,9 @@ const btnVoice          = $<HTMLButtonElement>('#btn-voice')
 const statsTotal        = $('#stats-total')
 const statsWeek         = $('#stats-week')
 const statsStreak       = $('#stats-streak')
+const statsTotalMin     = $('#stats-total-min')
+const statsAvgMin       = $('#stats-avg-min')
+const statsBestStreak   = $('#stats-best-streak')
 const elapsedLabel      = $('#elapsed-label')
 const summaryCard       = $('#summary-card')
 const overallProgressFill = $<HTMLDivElement>('#overall-progress-fill')
@@ -1185,7 +1188,12 @@ btnCloseHistory.addEventListener('click', () => {
 
 // ── 볼륨 토글 (Feature D: 3단계) ────────────────────────
 
-const VOLUME_ICONS: Record<VolumeLevel, string>  = { 0: '🔇', 1: '🔈', 2: '🔊' }
+const SVG_ATTR = 'class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+const VOLUME_ICONS: Record<VolumeLevel, string>  = {
+  0: `<svg ${SVG_ATTR}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`,
+  1: `<svg ${SVG_ATTR}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`,
+  2: `<svg ${SVG_ATTR}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
+}
 const VOLUME_TITLES: Record<VolumeLevel, string> = { 0: '소리 꺼짐', 1: '소리 작게', 2: '소리 크게' }
 const VOLUME_CYCLE: VolumeLevel[] = [2, 1, 0]  // 클릭할 때마다 high→low→off→high
 
@@ -1203,7 +1211,7 @@ btnVoice.addEventListener('click', () => {
     speech.setEnabled(true)
   }
 
-  btnVoice.textContent = VOLUME_ICONS[next]
+  btnVoice.innerHTML = VOLUME_ICONS[next]
   btnVoice.classList.toggle('active', next > 0)
   btnVoice.title = VOLUME_TITLES[next]
   // 시각적 펄스 피드백
@@ -1554,6 +1562,9 @@ function renderHistory(): void {
   animateCount(statsTotal, stats.total)
   animateCount(statsWeek, stats.thisWeek)
   animateCount(statsStreak, stats.streak)
+  animateCount(statsTotalMin, stats.totalMinutes)
+  animateCount(statsAvgMin, stats.avgMinutes)
+  animateCount(statsBestStreak, stats.bestStreak)
   historyShowCount = HISTORY_PAGE_SIZE
   renderHistoryItems()
   renderHeatmap()
@@ -1676,7 +1687,7 @@ function init(): void {
 
   // 초기 볼륨 버튼 상태
   const vol = audio.getVolume()
-  btnVoice.textContent = VOLUME_ICONS[vol]
+  btnVoice.innerHTML = VOLUME_ICONS[vol]
   btnVoice.title = VOLUME_TITLES[vol]
   btnVoice.classList.toggle('active', vol > 0)
 

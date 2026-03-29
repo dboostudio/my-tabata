@@ -69,14 +69,17 @@ export class WorkoutStorage {
     }
   }
 
-  getStats(): { total: number; thisWeek: number; streak: number } {
+  getStats(): {
+    total: number; thisWeek: number; streak: number;
+    totalMinutes: number; avgMinutes: number; bestStreak: number; maxRounds: number
+  } {
     const history = this.getHistory()
     const now = new Date()
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
     const thisWeek = history.filter(r => new Date(r.date) >= weekAgo).length
 
-    // 연속 운동일 계산 (오늘 운동 기록이 없으면 streak = 0)
+    // 연속 운동일 계산
     let streak = 0
     const days = new Set(history.map(r => new Date(r.date).toDateString()))
     let checkDate = new Date(now)
@@ -85,7 +88,31 @@ export class WorkoutStorage {
       checkDate.setDate(checkDate.getDate() - 1)
     }
 
-    return { total: history.length, thisWeek, streak }
+    // 총 운동 시간 (분)
+    const totalSeconds = history.reduce((sum, r) => sum + r.durationSeconds, 0)
+    const totalMinutes = Math.round(totalSeconds / 60)
+
+    // 평균 운동 시간 (분)
+    const avgMinutes = history.length > 0 ? Math.round(totalSeconds / history.length / 60) : 0
+
+    // 최장 스트릭 (역대)
+    let bestStreak = 0
+    if (history.length > 0) {
+      const sortedDays = [...new Set(history.map(r => new Date(r.date).toDateString()))]
+        .map(d => new Date(d).getTime()).sort((a, b) => a - b)
+      let run = 1
+      for (let i = 1; i < sortedDays.length; i++) {
+        const diff = (sortedDays[i]! - sortedDays[i - 1]!) / (24 * 60 * 60 * 1000)
+        if (diff <= 1.5) { run++; bestStreak = Math.max(bestStreak, run) }
+        else run = 1
+      }
+      bestStreak = Math.max(bestStreak, run)
+    }
+
+    // 최다 라운드
+    const maxRounds = history.length > 0 ? Math.max(...history.map(r => r.rounds)) : 0
+
+    return { total: history.length, thisWeek, streak, totalMinutes, avgMinutes, bestStreak, maxRounds }
   }
 
   /** 최근 n주간 날짜별 운동 횟수 반환 */
