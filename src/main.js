@@ -420,6 +420,8 @@ document.addEventListener('visibilitychange', () => {
         if (state.isRunning) {
             timer.pause();
             stopCircleAnimation();
+            // Sprint 8 Feature B: 자동 일시정지 시 링 인디케이터
+            setRingPaused(true);
             btnStart.textContent = '재개';
         }
     }
@@ -505,6 +507,8 @@ function addSwipeToClose(panel) {
         // 왼쪽 스와이프 & 수평 우세 조건: |deltaX| > 80 && |deltaX| > |deltaY| * 1.5
         if (deltaX > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
             panel.classList.remove('open');
+            // Sprint 8 Feature D: 스와이프 닫기 시 상단으로 스크롤
+            scrollToTop();
         }
     }, { passive: true });
 }
@@ -550,6 +554,20 @@ function getPhaseDuration(config, phase) {
         case 'cooldown': return config.cooldownDuration;
         default: return 1;
     }
+}
+// ── Sprint 8 Feature B: 일시정지 링 인디케이터 ─────────
+function setRingPaused(paused) {
+    timerCircle.classList.toggle('ring-paused', paused);
+}
+// ── Sprint 8 Feature E: CSS 컨페티 버스트 ───────────────
+function triggerConfetti() {
+    const burst = document.createElement('div');
+    burst.className = 'confetti-burst';
+    for (let i = 0; i < 8; i++) {
+        burst.appendChild(document.createElement('span'));
+    }
+    document.body.appendChild(burst);
+    setTimeout(() => burst.remove(), 2200);
 }
 // ── 페이즈 전환 펄스 애니메이션 ─────────────────────────
 function triggerRingPulse() {
@@ -618,9 +636,18 @@ timer.on(event => {
         updateNextPhaseLabel(phase, round, state.config);
         // 초기 숫자 표시 (complete는 COMPLETE 이벤트에서 처리)
         if (phase !== 'complete') {
+            // Sprint 8 Feature C: 페이즈 전환 시 숫자 페이드 인 애니메이션
+            timerNumber.classList.remove('number-transition');
+            void timerNumber.offsetWidth;
             timerNumber.textContent = String(state.timeRemaining);
+            timerNumber.classList.add('number-transition');
+            timerNumber.addEventListener('animationend', () => {
+                timerNumber.classList.remove('number-transition');
+            }, { once: true });
             resetCircleForPhase(state.timeRemaining, getPhaseDuration(state.config, phase));
         }
+        // Sprint 8 Feature B: 새 페이즈 시작 시 ring-paused 해제 (running)
+        setRingPaused(false);
         // 페이즈 전환 시 링 펄스 애니메이션 (idle 제외)
         if (phase !== 'idle') {
             triggerRingPulse();
@@ -689,6 +716,8 @@ timer.on(event => {
         stopElapsedTimer();
         updateTabTitle('complete', 0);
         releaseWakeLock();
+        // Sprint 8 Feature E: CSS 컨페티 버스트
+        triggerConfetti();
         // 햅틱 완료 진동 (Sprint 3 Feature D)
         triggerHaptic(500);
         // 휴식 모드 해제 (Sprint 3 Feature B)
@@ -766,11 +795,15 @@ btnStart.addEventListener('click', () => {
     else if (state.isRunning) {
         timer.pause();
         stopCircleAnimation();
+        // Sprint 8 Feature B: 일시정지 시 링 점선 인디케이터
+        setRingPaused(true);
         btnStart.textContent = '재개';
         releaseWakeLock();
     }
     else {
         timer.resume();
+        // Sprint 8 Feature B: 재개 시 링 인디케이터 해제
+        setRingPaused(false);
         const s = timer.getState();
         startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase));
         btnStart.textContent = '일시정지';
@@ -784,6 +817,8 @@ btnReset.addEventListener('click', () => {
     stopElapsedTimer();
     hideSummaryCard();
     releaseWakeLock();
+    // Sprint 8 Feature B: 리셋 시 일시정지 링 인디케이터 해제
+    setRingPaused(false);
     setRestMode(false);
     setBodyTint('idle');
     resetOverallProgress();
@@ -798,9 +833,16 @@ btnReset.addEventListener('click', () => {
     document.title = DEFAULT_TITLE;
     updateSvgAriaLabel('idle', cfg.workDuration, 0, cfg.totalRounds);
 });
+// ── Sprint 8 Feature D: 패널 닫기 시 상단으로 스크롤 ────
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 // 설정 패널
 btnSettings.addEventListener('click', () => settingsPanel.classList.add('open'));
-btnClose.addEventListener('click', () => settingsPanel.classList.remove('open'));
+btnClose.addEventListener('click', () => {
+    settingsPanel.classList.remove('open');
+    scrollToTop();
+});
 // 기록 패널 (Pro)
 btnHistory.addEventListener('click', () => {
     if (!premium.isPro()) {
@@ -810,7 +852,10 @@ btnHistory.addEventListener('click', () => {
     renderHistory();
     historyPanel.classList.add('open');
 });
-btnCloseHistory.addEventListener('click', () => historyPanel.classList.remove('open'));
+btnCloseHistory.addEventListener('click', () => {
+    historyPanel.classList.remove('open');
+    scrollToTop();
+});
 // ── 볼륨 토글 (Feature D: 3단계) ────────────────────────
 const VOLUME_ICONS = { 0: '🔇', 1: '🔈', 2: '🔊' };
 const VOLUME_TITLES = { 0: '소리 꺼짐', 1: '소리 작게', 2: '소리 크게' };
@@ -881,6 +926,7 @@ btnApplyConfig.addEventListener('click', () => {
     activePresetId = null;
     renderPresets();
     settingsPanel.classList.remove('open');
+    scrollToTop();
 });
 // ── 프리셋 렌더링 (Pro) ───────────────────────────────────
 function renderPresets() {
@@ -935,6 +981,7 @@ function renderPresets() {
             activePresetId = preset.id;
             renderPresets();
             settingsPanel.classList.remove('open');
+            scrollToTop();
         });
     });
 }

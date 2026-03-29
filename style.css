@@ -956,6 +956,58 @@ input  { font-family: inherit; }
   background: color-mix(in srgb, var(--surface2) 80%, var(--phase-color) 20%);
 }
 
+/* ── Sprint 8 Feature B: 일시정지 링 인디케이터 ── */
+.ring-progress.ring-paused {
+  stroke-dasharray: 16 10;
+  opacity: 0.45;
+  transition: opacity 0.3s ease, stroke 0.4s;
+}
+
+/* ── Sprint 8 Feature C: 페이즈 전환 숫자 페이드 ── */
+@keyframes number-fade {
+  0%   { opacity: 0; transform: scale(0.88); }
+  100% { opacity: 1; transform: scale(1.0);  }
+}
+
+.timer-number.number-transition {
+  animation: number-fade 0.2s ease-out forwards;
+}
+
+/* ── Sprint 8 Feature E: CSS 컨페티 ── */
+.confetti-burst {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 600;
+}
+
+.confetti-burst span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fly 2s ease-out forwards;
+}
+
+.confetti-burst span:nth-child(1)  { background: #FF4D4D; animation-delay: 0ms;   --cx: -90px; --cy: -120px; --rx: 360deg; }
+.confetti-burst span:nth-child(2)  { background: #4DABF7; animation-delay: 40ms;  --cx:  90px; --cy: -120px; --rx: -360deg; }
+.confetti-burst span:nth-child(3)  { background: #51CF66; animation-delay: 80ms;  --cx: -130px; --cy: -40px; --rx: 270deg; }
+.confetti-burst span:nth-child(4)  { background: #FFC107; animation-delay: 20ms;  --cx:  130px; --cy: -40px; --rx: -270deg; }
+.confetti-burst span:nth-child(5)  { background: #A78BFA; animation-delay: 60ms;  --cx: -60px;  --cy: -150px; --rx: 180deg; }
+.confetti-burst span:nth-child(6)  { background: #FF6B9D; animation-delay: 100ms; --cx:  60px;  --cy: -150px; --rx: -180deg; }
+.confetti-burst span:nth-child(7)  { background: #FFA940; animation-delay: 30ms;  --cx: -110px; --cy: -90px; --rx: 450deg; }
+.confetti-burst span:nth-child(8)  { background: #36CFC9; animation-delay: 70ms;  --cx:  110px; --cy: -90px; --rx: -450deg; }
+
+@keyframes confetti-fly {
+  0%   { opacity: 1;   transform: translate(0, 0) rotate(0deg)    scale(1.0); }
+  60%  { opacity: 1;   transform: translate(var(--cx), var(--cy)) rotate(var(--rx)) scale(1.0); }
+  100% { opacity: 0;   transform: translate(calc(var(--cx) * 1.1), calc(var(--cy) + 60px)) rotate(var(--rx)) scale(0.3); }
+}
+
 /* ── 반응형 ── */
 @media (max-width: 480px) {
   .timer-container { gap: 20px; }
