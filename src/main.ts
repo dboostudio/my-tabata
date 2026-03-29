@@ -801,13 +801,19 @@ function setRingPaused(paused: boolean): void {
 // ── Sprint 8 Feature E: CSS 컨페티 버스트 ───────────────
 
 function triggerConfetti(): void {
+  const colors = ['#FF4D4D', '#4DABF7', '#51CF66', '#FFC107', '#A78BFA', '#FF6B9D']
   const burst = document.createElement('div')
   burst.className = 'confetti-burst'
-  for (let i = 0; i < 8; i++) {
-    burst.appendChild(document.createElement('span'))
+  for (let i = 0; i < 20; i++) {
+    const span = document.createElement('span')
+    span.style.setProperty('--color', colors[i % colors.length]!)
+    span.style.setProperty('--delay', `${Math.random() * 0.3}s`)
+    span.style.setProperty('--size', `${4 + Math.random() * 6}px`)
+    span.style.setProperty('--i', String(i))
+    burst.appendChild(span)
   }
   document.body.appendChild(burst)
-  setTimeout(() => burst.remove(), 2200)
+  setTimeout(() => burst.remove(), 2500)
 }
 
 // ── 페이즈 전환 펄스 애니메이션 ─────────────────────────
@@ -1779,6 +1785,24 @@ function init(): void {
 
   // Sprint 9 Feature E: 앱 버전 표시
   appVersionLabel.textContent = APP_VERSION
+
+  // Sprint 24: URL 파라미터 처리 (PWA shortcuts)
+  const urlParams = new URLSearchParams(window.location.search)
+  const presetParam = urlParams.get('preset')
+  if (presetParam) {
+    const preset = PRESETS.find(p => p.id === presetParam)
+    if (preset) {
+      timer.updateConfig(preset.config)
+      inputWork.value = String(preset.config.workDuration)
+      inputRest.value = String(preset.config.restDuration)
+      inputRounds.value = String(preset.config.totalRounds)
+      activePresetId = preset.id
+      updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
+    }
+  }
+  if (urlParams.get('panel') === 'history') {
+    setTimeout(() => { renderHistory(); openPanel(historyPanel, btnHistory) }, 300)
+  }
 
   // Sprint 12: 언어 선택
   selectLanguage.value = getCurrentLang()

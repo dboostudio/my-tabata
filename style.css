@@ -294,7 +294,18 @@ input:focus-visible {
   align-items: center;
   gap: 6px;
 }
-.preset-emoji { font-size: 1.2rem; flex-shrink: 0; }
+.preset-emoji {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  background: color-mix(in srgb, var(--phase-color) 12%, transparent);
+  border-radius: 8px;
+}
 .preset-name  { font-weight: 600; font-size: 0.85rem; }
 .preset-description {
   font-size: 0.72rem;
@@ -950,26 +961,24 @@ input:focus-visible {
 
 .confetti-burst span {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
   border-radius: 2px;
+  background: var(--color, #FF4D4D);
   opacity: 0;
-  animation: confetti-fly 2s ease-out forwards;
+  animation: confetti-fly 2.2s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+  --cx: calc((var(--i, 0) - 10) * 14px);
+  --cy: calc(-60px - var(--i, 0) * 8px);
+  --rx: calc(var(--i, 0) * 45deg);
 }
-
-.confetti-burst span:nth-child(1)  { background: #FF4D4D; animation-delay: 0ms;   --cx: -90px; --cy: -120px; --rx: 360deg; }
-.confetti-burst span:nth-child(2)  { background: #4DABF7; animation-delay: 40ms;  --cx:  90px; --cy: -120px; --rx: -360deg; }
-.confetti-burst span:nth-child(3)  { background: #51CF66; animation-delay: 80ms;  --cx: -130px; --cy: -40px; --rx: 270deg; }
-.confetti-burst span:nth-child(4)  { background: #FFC107; animation-delay: 20ms;  --cx:  130px; --cy: -40px; --rx: -270deg; }
-.confetti-burst span:nth-child(5)  { background: #A78BFA; animation-delay: 60ms;  --cx: -60px;  --cy: -150px; --rx: 180deg; }
-.confetti-burst span:nth-child(6)  { background: #FF6B9D; animation-delay: 100ms; --cx:  60px;  --cy: -150px; --rx: -180deg; }
-.confetti-burst span:nth-child(7)  { background: #FFA940; animation-delay: 30ms;  --cx: -110px; --cy: -90px; --rx: 450deg; }
-.confetti-burst span:nth-child(8)  { background: #36CFC9; animation-delay: 70ms;  --cx:  110px; --cy: -90px; --rx: -450deg; }
+.confetti-burst span:nth-child(odd)  { --cx: calc((var(--i, 0) - 10) * -14px); }
+.confetti-burst span:nth-child(2n)   { border-radius: 50%; }
 
 @keyframes confetti-fly {
   0%   { opacity: 1;   transform: translate(0, 0) rotate(0deg)    scale(1.0); }
-  60%  { opacity: 1;   transform: translate(var(--cx), var(--cy)) rotate(var(--rx)) scale(1.0); }
-  100% { opacity: 0;   transform: translate(calc(var(--cx) * 1.1), calc(var(--cy) + 60px)) rotate(var(--rx)) scale(0.3); }
+  50%  { opacity: 1;   transform: translate(var(--cx), var(--cy)) rotate(var(--rx)) scale(1.0); }
+  100% { opacity: 0;   transform: translate(calc(var(--cx) * 1.2), calc(var(--cy) + 80px)) rotate(var(--rx)) scale(0.2); }
 }
 
 /* ── Sprint 9 Feature A: PWA 설치 배너 ── */

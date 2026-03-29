@@ -19,6 +19,20 @@ export default defineConfig({
                     { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
                     { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
                     { src: '/icons/icon.svg', sizes: 'any', type: 'image/svg+xml' }
+                ],
+                shortcuts: [
+                    {
+                        name: 'Start Tabata Classic',
+                        short_name: 'Classic',
+                        url: '/?preset=tabata-classic',
+                        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
+                    },
+                    {
+                        name: 'Workout Log',
+                        short_name: 'Log',
+                        url: '/?panel=history',
+                        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
+                    }
                 ]
             },
             workbox: {
