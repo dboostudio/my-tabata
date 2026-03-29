@@ -20,6 +20,10 @@
 
   /* CSS-04 fix: centralise overlay colour */
   --overlay-bg: rgba(0, 0, 0, 0.7);
+
+  /* Sprint 13 추가 */
+  --surface1:   #1a2747;
+  --accent:     var(--color-work);
 }
 
 /* ── 리셋 & 기반 ── */
@@ -36,6 +40,14 @@ html, body {
 
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
 input  { font-family: inherit; }
+
+/* ── Sprint 13: 포커스 아웃라인 (키보드 접근성) ── */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* ── 헤더 ── */
 .header {
@@ -1122,4 +1134,22 @@ input  { font-family: inherit; }
     gap: 4px 12px;
   }
   .history-date { width: 100%; }
+}
+
+/* Sprint 13: 극소형 화면 (< 360px) */
+@media (max-width: 360px) {
+  .preset-grid { grid-template-columns: 1fr; }
+}
+
+/* Sprint 13: 가로 모드 (낮은 높이) */
+@media (max-height: 500px) {
+  .timer-container { min-height: auto; gap: 16px; padding: 12px; }
+  .circle-wrapper { width: min(240px, 50vh); height: min(240px, 50vh); }
+  .header { padding: 8px 16px; }
+}
+
+/* Sprint 13: 데스크톱/태블릿 (넓은 화면) */
+@media (min-width: 768px) {
+  .circle-wrapper { width: min(420px, 60vw); height: min(420px, 60vw); }
+  .panel { max-width: 480px; }
 }

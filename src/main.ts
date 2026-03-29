@@ -925,6 +925,7 @@ function trapFocus(container: HTMLElement, returnFocusEl?: HTMLElement | null): 
 const panelTrapCleanups = new Map<HTMLElement, () => void>()
 
 function openPanel(panel: HTMLElement, trigger?: HTMLElement | null): void {
+  panel.scrollTop = 0
   panel.classList.add('open')
   const existing = panelTrapCleanups.get(panel)
   if (existing) existing()
