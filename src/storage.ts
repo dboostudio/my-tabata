@@ -2,9 +2,19 @@
 
 const HISTORY_KEY = 'tabatago_history'
 const WEEKLY_GOAL_KEY = 'tabatago_weekly_goal'
+const CUSTOM_PRESETS_KEY = 'tabata_custom_presets'
 const MAX_RECORDS = 100
+const MAX_CUSTOM_PRESETS = 10
 
 export type WeeklyGoal = 3 | 4 | 5 | null
+
+export interface CustomPreset {
+  id: string
+  name: string
+  workDuration: number
+  restDuration: number
+  totalRounds: number
+}
 
 export interface WorkoutRecord {
   date: string          // ISO 8601
@@ -92,5 +102,30 @@ export class WorkoutStorage {
       map.set(key, (map.get(key) ?? 0) + 1)
     }
     return map
+  }
+
+  // ── 커스텀 프리셋 ────────────────────────────────
+
+  getCustomPresets(): CustomPreset[] {
+    try {
+      const raw = localStorage.getItem(CUSTOM_PRESETS_KEY)
+      return raw ? (JSON.parse(raw) as CustomPreset[]) : []
+    } catch {
+      return []
+    }
+  }
+
+  saveCustomPreset(preset: Omit<CustomPreset, 'id'>): CustomPreset {
+    const presets = this.getCustomPresets()
+    const newPreset: CustomPreset = { ...preset, id: `custom-${Date.now()}` }
+    presets.unshift(newPreset)
+    if (presets.length > MAX_CUSTOM_PRESETS) presets.splice(MAX_CUSTOM_PRESETS)
+    localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets))
+    return newPreset
+  }
+
+  deleteCustomPreset(id: string): void {
+    const presets = this.getCustomPresets().filter(p => p.id !== id)
+    localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets))
   }
 }

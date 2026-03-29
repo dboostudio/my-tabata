@@ -48,6 +48,8 @@ const heatmapEl         = $('#heatmap')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
+const btnSavePreset     = $<HTMLButtonElement>('#btn-save-preset')
+const customPresetList  = $('#custom-preset-list')
 const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
 const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
 const errWork           = $('#err-work')
@@ -1123,6 +1125,10 @@ btnVoice.addEventListener('click', () => {
   btnVoice.textContent = VOLUME_ICONS[next]
   btnVoice.classList.toggle('active', next > 0)
   btnVoice.title = VOLUME_TITLES[next]
+  // 시각적 펄스 피드백
+  btnVoice.classList.remove('btn-pulse')
+  void (btnVoice as HTMLElement & { offsetWidth: number }).offsetWidth
+  btnVoice.classList.add('btn-pulse')
 })
 
 
@@ -1225,6 +1231,69 @@ function renderPresets(): void {
     })
   })
 }
+
+// ── 커스텀 프리셋 저장 (Sprint 17) ──────────────────────
+
+function renderCustomPresets(): void {
+  const presets = storage.getCustomPresets()
+  if (presets.length === 0) {
+    customPresetList.innerHTML = ''
+    return
+  }
+  customPresetList.innerHTML = `
+    <h4 class="custom-preset-title">${t('preset.myPresets')}</h4>
+    ${presets.map(p => `
+      <div class="custom-preset-item" data-id="${p.id}">
+        <span class="custom-preset-name">${p.name}</span>
+        <span class="custom-preset-detail">${p.workDuration}/${p.restDuration}s × ${p.totalRounds}</span>
+        <button class="custom-preset-use" data-id="${p.id}">▶</button>
+        <button class="custom-preset-del" data-id="${p.id}">✕</button>
+      </div>
+    `).join('')}`
+
+  customPresetList.querySelectorAll<HTMLButtonElement>('.custom-preset-use').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = presets.find(x => x.id === btn.dataset['id'])
+      if (!p) return
+      const config = { workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds, countdownDuration: 3, warmupDuration: 0, cooldownDuration: 0 }
+      timer.reset()
+      timer.updateConfig(config)
+      inputWork.value = String(p.workDuration)
+      inputRest.value = String(p.restDuration)
+      inputRounds.value = String(p.totalRounds)
+      roundLabel.textContent = `0 / ${p.totalRounds}`
+      renderRoundDots(0, p.totalRounds)
+      btnStart.textContent = t('btn.start')
+      updateIntervalDisplay(p.workDuration, p.restDuration)
+      saveSettings({ workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds })
+      activePresetId = p.id
+      renderPresets()
+      closePanel(settingsPanel)
+      scrollToTop()
+    })
+  })
+
+  customPresetList.querySelectorAll<HTMLButtonElement>('.custom-preset-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      storage.deleteCustomPreset(btn.dataset['id']!)
+      renderCustomPresets()
+    })
+  })
+}
+
+btnSavePreset.addEventListener('click', () => {
+  const work = Number(inputWork.value)
+  const rest = Number(inputRest.value)
+  const rounds = Number(inputRounds.value)
+  if (!work || !rest || !rounds) return
+
+  const name = prompt(t('preset.enterName'))
+  if (!name || !name.trim()) return
+
+  storage.saveCustomPreset({ name: name.trim(), workDuration: work, restDuration: rest, totalRounds: rounds })
+  showToast(t('preset.saved'))
+  renderCustomPresets()
+})
 
 // ── 주간 목표 (Sprint 6 Feature D) ───────────────────────
 
@@ -1329,28 +1398,58 @@ function renderHistoryDeleteArea(): void {
   })
 }
 
+const HISTORY_PAGE_SIZE = 20
+let historyShowCount = HISTORY_PAGE_SIZE
+
+function renderHistoryItems(): void {
+  const allHistory = storage.getHistory()
+  const history = allHistory.slice(0, historyShowCount)
+  const locale = DATE_LOCALE[getCurrentLang()]
+
+  if (history.length === 0) {
+    historyList.innerHTML = `
+      <div class="empty-history">
+        <p>${t('history.empty')}</p>
+        <button class="btn-outline btn-start-first" id="btn-start-first">${t('btn.start')}</button>
+      </div>`
+    document.getElementById('btn-start-first')?.addEventListener('click', () => {
+      closePanel(historyPanel)
+      btnStart.click()
+    })
+    return
+  }
+
+  let html = history.map(r => {
+    const date = new Date(r.date)
+    const mins = Math.floor(r.durationSeconds / 60)
+    const secs = r.durationSeconds % 60
+    const interval = t('misc.intervalDisplay', { w: r.workDuration, r: r.restDuration })
+    return `
+      <div class="history-item">
+        <span class="history-date">${date.toLocaleDateString(locale)}</span>
+        <span class="history-detail">${interval} × ${r.rounds}</span>
+        <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
+      </div>`
+  }).join('')
+
+  if (allHistory.length > historyShowCount) {
+    html += `<button class="btn-outline btn-load-more" id="btn-load-more">${t('history.loadMore', { n: Math.min(HISTORY_PAGE_SIZE, allHistory.length - historyShowCount) })}</button>`
+  }
+  historyList.innerHTML = html
+
+  document.getElementById('btn-load-more')?.addEventListener('click', () => {
+    historyShowCount += HISTORY_PAGE_SIZE
+    renderHistoryItems()
+  })
+}
+
 function renderHistory(): void {
   const stats = storage.getStats()
   statsTotal.textContent  = String(stats.total)
   statsWeek.textContent   = String(stats.thisWeek)
   statsStreak.textContent = String(stats.streak)
-
-  const history = storage.getHistory().slice(0, 20)
-  const locale = DATE_LOCALE[getCurrentLang()]
-  historyList.innerHTML = history.length === 0
-    ? `<p class="empty-history">${t('history.empty')}</p>`
-    : history.map(r => {
-        const date = new Date(r.date)
-        const mins = Math.floor(r.durationSeconds / 60)
-        const secs = r.durationSeconds % 60
-        const interval = t('misc.intervalDisplay', { w: r.workDuration, r: r.restDuration })
-        return `
-          <div class="history-item">
-            <span class="history-date">${date.toLocaleDateString(locale)}</span>
-            <span class="history-detail">${interval} × ${r.rounds}</span>
-            <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
-          </div>`
-      }).join('')
+  historyShowCount = HISTORY_PAGE_SIZE
+  renderHistoryItems()
   renderHeatmap()
   renderHistoryDeleteArea()
   renderWeeklyGoal()
@@ -1476,6 +1575,7 @@ function init(): void {
   btnVoice.classList.toggle('active', vol > 0)
 
   renderPresets()
+  renderCustomPresets()
 
   // Sprint 7 Feature C: 입력 실시간 검증
   attachInputValidation()

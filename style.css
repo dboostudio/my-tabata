@@ -358,7 +358,9 @@ input:focus-visible {
 .history-date   { color: var(--text-muted); }
 .history-detail { color: var(--text); }
 .history-duration { color: var(--phase-color); font-weight: 600; }
-.empty-history  { color: var(--text-muted); text-align: center; padding: 32px 0; }
+.empty-history  { color: var(--text-muted); text-align: center; padding: 32px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.btn-start-first { font-size: 0.85rem; padding: 8px 24px; }
+.btn-load-more { width: 100%; margin-top: 8px; font-size: 0.85rem; padding: 10px; }
 
 /* ── 오버레이 (패널 닫기) ── */
 .overlay {
@@ -1197,6 +1199,64 @@ input:focus-visible {
 .seo-content details p {
   margin-top: 8px;
 }
+
+/* ── Sprint 17: 버튼 펄스 피드백 ── */
+@keyframes btn-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.btn-pulse {
+  animation: btn-pulse 0.25s ease;
+}
+
+/* ── Sprint 17: 커스텀 프리셋 ── */
+.custom-preset-actions {
+  display: flex;
+  gap: 8px;
+}
+.custom-preset-actions .btn-outline { flex: 1; }
+.btn-save-preset {
+  border-color: var(--color-complete) !important;
+  color: var(--color-complete) !important;
+}
+.custom-preset-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 12px 0 8px;
+}
+.custom-preset-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+.custom-preset-name {
+  flex: 1;
+  color: var(--text);
+  font-weight: 600;
+}
+.custom-preset-detail {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.custom-preset-use, .custom-preset-del {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.custom-preset-use {
+  background: var(--phase-color);
+  color: #fff;
+}
+.custom-preset-del {
+  color: var(--text-muted);
+}
+.custom-preset-del:hover { color: #FF4D4D; }
 
 /* ── Sprint 16: 히스토리 항목 입장 애니메이션 ── */
 @keyframes history-slide-in {

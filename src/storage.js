@@ -1,7 +1,9 @@
 // 📄 src/storage.ts — 운동 기록 관리
 const HISTORY_KEY = 'tabatago_history';
 const WEEKLY_GOAL_KEY = 'tabatago_weekly_goal';
+const CUSTOM_PRESETS_KEY = 'tabata_custom_presets';
 const MAX_RECORDS = 100;
+const MAX_CUSTOM_PRESETS = 10;
 export class WorkoutStorage {
     getHistory() {
         try {
@@ -78,5 +80,28 @@ export class WorkoutStorage {
             map.set(key, (map.get(key) ?? 0) + 1);
         }
         return map;
+    }
+    // ── 커스텀 프리셋 ────────────────────────────────
+    getCustomPresets() {
+        try {
+            const raw = localStorage.getItem(CUSTOM_PRESETS_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }
+        catch {
+            return [];
+        }
+    }
+    saveCustomPreset(preset) {
+        const presets = this.getCustomPresets();
+        const newPreset = { ...preset, id: `custom-${Date.now()}` };
+        presets.unshift(newPreset);
+        if (presets.length > MAX_CUSTOM_PRESETS)
+            presets.splice(MAX_CUSTOM_PRESETS);
+        localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets));
+        return newPreset;
+    }
+    deleteCustomPreset(id) {
+        const presets = this.getCustomPresets().filter(p => p.id !== id);
+        localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets));
     }
 }
