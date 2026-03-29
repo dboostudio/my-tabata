@@ -6,6 +6,7 @@ import { SpeechManager } from './speech'
 import { PremiumManager } from './premium'
 import { WorkoutStorage } from './storage'
 import { PRESETS } from './presets'
+import { APP_VERSION } from './version'
 
 // ── DOM 요소 ────────────────────────────────────────────
 
@@ -57,6 +58,13 @@ const weeklyGoalCount   = $('#weekly-goal-count')
 const weeklyGoalMessage = $('#weekly-goal-message')
 const goalRingFill      = document.querySelector<SVGCircleElement>('#goal-ring-fill')!
 const toastEl           = $('#toast')
+// Sprint 9
+const pwaInstallBanner  = $('#pwa-install-banner')
+const btnPwaInstall     = $<HTMLButtonElement>('#btn-pwa-install')
+const btnPwaDismiss     = $<HTMLButtonElement>('#btn-pwa-dismiss')
+const appVersionLabel   = $('#app-version-label')
+const btnContinueFree   = $<HTMLAnchorElement>('#btn-continue-free')
+const errorBoundary     = $('#error-boundary')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
 
@@ -818,6 +826,9 @@ timer.on(event => {
 
     // 배경 틴트 리셋 (Sprint 4 Feature C)
     setBodyTint('complete')
+
+    // Sprint 9 Feature A: 첫 완료 운동 후 PWA 설치 배너 표시
+    showPwaInstallBanner()
   }
 })
 
@@ -1193,6 +1204,75 @@ function updateProUI(): void {
   }
 }
 
+// ── Sprint 9 Feature A: PWA 설치 배너 ────────────────────
+
+const PWA_DISMISS_KEY = 'tabatago_install_dismissed'
+
+// beforeinstallprompt 이벤트를 미리 저장해 두었다가 적절한 시점에 표시
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+window.addEventListener('beforeinstallprompt', (e: Event) => {
+  e.preventDefault()
+  deferredInstallPrompt = e as BeforeInstallPromptEvent
+})
+
+window.addEventListener('appinstalled', () => {
+  hidePwaInstallBanner()
+  deferredInstallPrompt = null
+})
+
+function isPwaInstallDismissed(): boolean {
+  try {
+    return localStorage.getItem(PWA_DISMISS_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markPwaInstallDismissed(): void {
+  try {
+    localStorage.setItem(PWA_DISMISS_KEY, '1')
+  } catch {
+    // localStorage 미지원 환경 무시
+  }
+}
+
+function showPwaInstallBanner(): void {
+  if (!deferredInstallPrompt) return
+  if (isPwaInstallDismissed()) return
+  pwaInstallBanner.style.display = 'flex'
+}
+
+function hidePwaInstallBanner(): void {
+  pwaInstallBanner.style.display = 'none'
+}
+
+btnPwaInstall.addEventListener('click', () => {
+  if (!deferredInstallPrompt) return
+  deferredInstallPrompt.prompt()
+  deferredInstallPrompt.userChoice.then(() => {
+    hidePwaInstallBanner()
+    deferredInstallPrompt = null
+  }).catch(() => {})
+})
+
+btnPwaDismiss.addEventListener('click', () => {
+  markPwaInstallDismissed()
+  hidePwaInstallBanner()
+})
+
+// ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" 링크 ──
+
+btnContinueFree.addEventListener('click', (e: MouseEvent) => {
+  e.preventDefault()
+  proModal.classList.remove('open')
+})
+
 // ── 초기화 ───────────────────────────────────────────────
 
 function init(): void {
@@ -1262,6 +1342,19 @@ function init(): void {
 
   // 시작 버튼 클릭 시 온보딩 툴팁 즉시 해제
   btnStart.addEventListener('click', dismissOnboardingTooltip, { once: true })
+
+  // Sprint 9 Feature E: 앱 버전 표시
+  appVersionLabel.textContent = APP_VERSION
 }
 
-init()
+// Sprint 9 Feature D: 에러 바운더리 — init()를 try/catch로 래핑
+try {
+  init()
+} catch (err) {
+  console.error('[TabataGo] 초기화 오류:', err)
+  // 앱 콘텐츠 숨기고 에러 폴백 표시
+  document.querySelector<HTMLElement>('.header')?.style.setProperty('display', 'none')
+  document.querySelector<HTMLElement>('.timer-container')?.style.setProperty('display', 'none')
+  document.querySelector<HTMLElement>('#overall-progress')?.style.setProperty('display', 'none')
+  errorBoundary.style.display = 'flex'
+}

@@ -134,6 +134,11 @@
         Pro로 업그레이드 — $4.99
       </button>
     </div>
+
+    <!-- 앱 버전 표시 (Sprint 9 Feature E) -->
+    <div class="settings-version-footer">
+      <span id="app-version-label" class="settings-version-text"></span>
+    </div>
   </div>
 </div>
 
@@ -200,6 +205,7 @@
     <div class="modal-price">단 <strong>$4.99</strong> 일회성 결제</div>
     <button id="btn-buy-pro" class="btn-primary btn-large">구매하기</button>
     <button id="btn-close-pro" class="btn-ghost">나중에</button>
+    <a id="btn-continue-free" class="pro-modal-free-link">평가판으로 계속 사용</a>
   </div>
 </div>
 
@@ -208,6 +214,23 @@
 
 <!-- ── 토스트 알림 (Sprint 6 Feature B) ── -->
 <div id="toast" class="toast" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ── PWA 설치 배너 (Sprint 9 Feature A) ── -->
+<div id="pwa-install-banner" class="pwa-install-banner" style="display:none" role="banner" aria-label="홈 화면 추가 안내">
+  <span class="pwa-install-text">📲 홈 화면에 추가하기</span>
+  <button id="btn-pwa-install" class="btn-pwa-install">추가</button>
+  <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="배너 닫기">✕</button>
+</div>
+
+<!-- ── 에러 경계 폴백 UI (Sprint 9 Feature D) ── -->
+<div id="error-boundary" class="error-boundary" style="display:none" role="alert" aria-live="assertive">
+  <div class="error-boundary-inner">
+    <div class="error-boundary-emoji">😥</div>
+    <h2 class="error-boundary-title">앱을 불러오지 못했습니다</h2>
+    <p class="error-boundary-desc">새로고침하거나 일반 브라우징 모드에서 열어주세요.</p>
+    <button class="btn-primary" onclick="window.location.reload()">새로고침</button>
+  </div>
+</div>
 
 <script type="module" src="/src/main.ts"></script>
 </body>

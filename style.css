@@ -1008,6 +1008,195 @@ input  { font-family: inherit; }
   100% { opacity: 0;   transform: translate(calc(var(--cx) * 1.1), calc(var(--cy) + 60px)) rotate(var(--rx)) scale(0.3); }
 }
 
+/* ── Sprint 9 Feature A: PWA 설치 배너 ── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface2);
+  border-top: 1px solid color-mix(in srgb, var(--phase-color) 30%, transparent);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 450;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  animation: slide-up-banner 0.3s ease-out;
+}
+
+@keyframes slide-up-banner {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.pwa-install-text {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.btn-pwa-install {
+  padding: 8px 20px;
+  border-radius: 50px;
+  background: var(--phase-color);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--phase-color) 40%, transparent);
+}
+
+.btn-pwa-install:hover  { transform: translateY(-1px); }
+.btn-pwa-install:active { transform: translateY(0); }
+
+.btn-pwa-dismiss {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-pwa-dismiss:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" ── */
+.pro-modal-free-link {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.pro-modal-free-link:hover {
+  color: var(--text);
+}
+
+/* ── Sprint 9 Feature D: 에러 바운더리 폴백 ── */
+.error-boundary {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.error-boundary-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  max-width: 320px;
+}
+
+.error-boundary-emoji {
+  font-size: 3rem;
+}
+
+.error-boundary-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.error-boundary-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Sprint 9 Feature E: 설정 패널 버전 표시 ── */
+.settings-version-footer {
+  padding-top: 8px;
+  border-top: 1px solid var(--surface2);
+  text-align: center;
+}
+
+.settings-version-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+/* ── Sprint 9 Feature F: Reduced Motion 접근성 지원 ── */
+@media (prefers-reduced-motion: reduce) {
+  /* 배경 전환 즉시 처리 */
+  html, body {
+    transition: none;
+  }
+
+  /* 링 색상/획 전환 즉시 처리 */
+  .ring-progress,
+  .ring-bg {
+    transition: none;
+  }
+
+  /* tick 펄스 비활성화 */
+  .timer-number.tick-pulse {
+    animation: none;
+  }
+
+  /* 페이즈 전환 숫자 페이드 비활성화 */
+  .timer-number.number-transition {
+    animation: none;
+  }
+
+  /* 링 펄스 비활성화 */
+  .ring-progress.ring-pulse {
+    animation: none;
+  }
+
+  /* 컨페티 비활성화 */
+  .confetti-burst span {
+    animation: none;
+    display: none;
+  }
+
+  /* 로고 색상 전환 즉시 처리 */
+  .logo {
+    transition: none;
+  }
+
+  /* 버튼/도트 전환 즉시 처리 */
+  .btn-primary,
+  .dot,
+  .phase-label,
+  .ring-progress {
+    transition: none;
+  }
+
+  /* 패널 슬라이드 즉시 처리 */
+  .panel {
+    transition: none;
+  }
+
+  /* 온보딩 툴팁 페이드 비활성화 */
+  .onboarding-tooltip.dismissing {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* PWA 배너 슬라이드 즉시 처리 */
+  .pwa-install-banner {
+    animation: none;
+  }
+}
+
 /* ── 반응형 ── */
 @media (max-width: 480px) {
   .timer-container { gap: 20px; }

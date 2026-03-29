@@ -2,8 +2,8 @@
 const STORAGE_KEY = 'tabatago_pro';
 const UNLOCK_PARAM = 'unlocked';
 const UNLOCK_TOKEN = 'tabatago_pro_2024';
-// Gumroad/Stripe 결제 링크 (실제 운영 시 본인 링크로 교체)
-export const PURCHASE_URL = 'https://gumroad.com/l/tabatago-pro';
+// Gumroad 결제 링크 — ?wanted=true 파라미터로 오버레이 모드 활성화
+export const PURCHASE_URL = 'https://gumroad.com/l/tabatago-pro?wanted=true';
 export class PremiumManager {
     constructor() {
         // URL 파라미터로 결제 완료 감지
