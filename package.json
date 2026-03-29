@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "qa": "EXPECT_BASE_URL=http://localhost:5173 expect-cli",
+    "qa:sprint": "EXPECT_BASE_URL=http://localhost:5173 expect-cli --target branch -y",
+    "qa:run": "EXPECT_BASE_URL=http://localhost:5173 expect-cli -y"
   },
   "devDependencies": {
     "typescript": "^5.3.0",
