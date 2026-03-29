@@ -364,7 +364,7 @@ function showToast(message: string): void {
 
 async function shareWorkout(rounds: number, durationSeconds: number, workDuration: number, restDuration: number): Promise<void> {
   const interval = `${workDuration}s 운동 / ${restDuration}s 휴식`
-  const text = `💪 TabataGo 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabatago.app`
+  const text = `💪 TabataGo 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabata.my`
   if (typeof navigator.share === 'function') {
     try {
       await navigator.share({ title: 'TabataGo 운동 완료', text })
