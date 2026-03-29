@@ -1558,7 +1558,12 @@ function renderHistoryItems(): void {
   })
 }
 
+const _countAnimFrames = new Map<HTMLElement, number>()
+
 function animateCount(el: HTMLElement, target: number, duration = 400): void {
+  const prev = _countAnimFrames.get(el)
+  if (prev !== undefined) cancelAnimationFrame(prev)
+
   const start = Number(el.textContent) || 0
   if (start === target) { el.textContent = String(target); return }
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -1570,9 +1575,13 @@ function animateCount(el: HTMLElement, target: number, duration = 400): void {
     const progress = Math.min((now - startTime) / duration, 1)
     const eased = 1 - Math.pow(1 - progress, 3)
     el.textContent = String(Math.round(start + (target - start) * eased))
-    if (progress < 1) requestAnimationFrame(frame)
+    if (progress < 1) {
+      _countAnimFrames.set(el, requestAnimationFrame(frame))
+    } else {
+      _countAnimFrames.delete(el)
+    }
   }
-  requestAnimationFrame(frame)
+  _countAnimFrames.set(el, requestAnimationFrame(frame))
 }
 
 function renderHistory(): void {
