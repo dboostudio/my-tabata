@@ -132,7 +132,11 @@ function applyMinimalistMode(enabled) {
 const THEME_KEY = 'tabata_theme';
 function loadLightTheme() {
     try {
-        return localStorage.getItem(THEME_KEY) === 'light';
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved !== null)
+            return saved === 'light';
+        // 저장값 없으면 시스템 설정 따르기
+        return window.matchMedia('(prefers-color-scheme: light)').matches;
     }
     catch {
         return false;
@@ -875,6 +879,7 @@ btnStart.addEventListener('pointerdown', () => {
             longPressActivated = true;
             timer.skipCountdown();
             triggerHaptic(100);
+            showToast(t('misc.skipCountdown'));
         }
         longPressTimerId = null;
     }, 500);
@@ -1331,11 +1336,27 @@ function renderHistoryItems() {
         renderHistoryItems();
     });
 }
+function animateCount(el, target, duration = 400) {
+    const start = Number(el.textContent) || 0;
+    if (start === target) {
+        el.textContent = String(target);
+        return;
+    }
+    const startTime = performance.now();
+    function frame(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = String(Math.round(start + (target - start) * eased));
+        if (progress < 1)
+            requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+}
 function renderHistory() {
     const stats = storage.getStats();
-    statsTotal.textContent = String(stats.total);
-    statsWeek.textContent = String(stats.thisWeek);
-    statsStreak.textContent = String(stats.streak);
+    animateCount(statsTotal, stats.total);
+    animateCount(statsWeek, stats.thisWeek);
+    animateCount(statsStreak, stats.streak);
     historyShowCount = HISTORY_PAGE_SIZE;
     renderHistoryItems();
     renderHeatmap();
@@ -1485,6 +1506,7 @@ function init() {
             btnStart.textContent = state.phase === 'complete' ? t('btn.restart') : t('btn.start');
         }
         renderPresets();
+        renderCustomPresets();
         renderHistory();
         document.title = t('tab.default');
         progressRingSvg.setAttribute('aria-label', t('aria.timerRing'));
