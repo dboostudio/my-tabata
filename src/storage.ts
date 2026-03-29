@@ -11,6 +11,8 @@ export interface CustomPreset {
   workDuration: number
   restDuration: number
   totalRounds: number
+  warmupEnabled?: boolean
+  cooldownEnabled?: boolean
 }
 
 export interface WorkoutRecord {

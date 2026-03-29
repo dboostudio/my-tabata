@@ -53,7 +53,9 @@ input  { font-family: inherit; }
   --text-muted: #6e6e73;
   --overlay-bg: rgba(0, 0, 0, 0.4);
 }
-.light-theme .ring-bg { stroke: var(--surface2); }
+.light-theme .ring-bg { stroke: #d1d1d6; }
+.light-theme .btn-outline { border-color: #c0c0c5; color: var(--text); }
+.light-theme .btn-outline:hover { background: rgba(0,0,0,0.05); }
 
 /* ── Sprint 13: 포커스 아웃라인 (키보드 접근성) ── */
 button:focus-visible,
@@ -146,11 +148,12 @@ input:focus-visible {
   gap: 4px;
 }
 .phase-label {
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
   font-weight: 600;
   color: var(--phase-color);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: clamp(1px, 0.5vw, 2px);
+  white-space: nowrap;
   transition: color 0.4s;
 }
 .timer-number {

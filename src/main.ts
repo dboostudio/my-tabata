@@ -1381,7 +1381,9 @@ function renderCustomPresets(): void {
     btn.addEventListener('click', () => {
       const p = presets.find(x => x.id === btn.dataset['id'])
       if (!p) return
-      const config = { workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds, countdownDuration: 3, warmupDuration: 0, cooldownDuration: 0 }
+      const config = { workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds, countdownDuration: 3, warmupDuration: p.warmupEnabled ? 60 : 0, cooldownDuration: p.cooldownEnabled ? 60 : 0 }
+      toggleWarmup.checked = p.warmupEnabled === true
+      toggleCooldown.checked = p.cooldownEnabled === true
       timer.reset()
       timer.updateConfig(config)
       inputWork.value = String(p.workDuration)
@@ -1416,7 +1418,7 @@ function handleSavePreset(): void {
   const name = prompt(t('preset.enterName'))
   if (!name || !name.trim()) return
 
-  storage.saveCustomPreset({ name: name.trim(), workDuration: work, restDuration: rest, totalRounds: rounds })
+  storage.saveCustomPreset({ name: name.trim(), workDuration: work, restDuration: rest, totalRounds: rounds, warmupEnabled: toggleWarmup.checked, cooldownEnabled: toggleCooldown.checked })
   showToast(t('preset.saved'))
   renderCustomPresets()
 }
