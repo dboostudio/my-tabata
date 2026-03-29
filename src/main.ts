@@ -822,13 +822,19 @@ function triggerConfetti(): void {
 
 // ── 페이즈 전환 펄스 애니메이션 ─────────────────────────
 
+const circleWrapper = document.querySelector<HTMLElement>('.circle-wrapper')!
+
 function triggerRingPulse(): void {
   timerCircle.classList.remove('ring-pulse')
-  // 리플로우를 강제하여 애니메이션이 재실행되도록
+  circleWrapper.classList.remove('glow')
   void (timerCircle as unknown as HTMLElement & { offsetWidth: number }).offsetWidth
   timerCircle.classList.add('ring-pulse')
+  circleWrapper.classList.add('glow')
   timerCircle.addEventListener('animationend', () => {
     timerCircle.classList.remove('ring-pulse')
+  }, { once: true })
+  circleWrapper.addEventListener('animationend', () => {
+    circleWrapper.classList.remove('glow')
   }, { once: true })
 }
 

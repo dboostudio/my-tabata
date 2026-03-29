@@ -405,13 +405,27 @@ input:focus-visible {
 
 /* ── 페이즈 전환 펄스 애니메이션 ── */
 @keyframes ring-pulse {
-  0%   { stroke-width: 8;  filter: drop-shadow(0 0 0px var(--phase-color)); }
-  30%  { stroke-width: 12; filter: drop-shadow(0 0 12px var(--phase-color)); }
-  100% { stroke-width: 8;  filter: drop-shadow(0 0 0px var(--phase-color)); }
+  0%   { stroke-width: 8; }
+  30%  { stroke-width: 12; }
+  100% { stroke-width: 8; }
 }
 
 .ring-progress.ring-pulse {
   animation: ring-pulse 0.4s ease-out forwards;
+}
+
+/* 링 글로우: circle-wrapper에 원형 box-shadow로 자연스러운 그라데이션 */
+@keyframes ring-glow {
+  0%   { box-shadow: 0 0 0px transparent; }
+  30%  { box-shadow: 0 0 40px color-mix(in srgb, var(--phase-color) 30%, transparent); }
+  100% { box-shadow: 0 0 0px transparent; }
+}
+.circle-wrapper {
+  border-radius: 50%;
+  transition: box-shadow 0.4s ease;
+}
+.circle-wrapper.glow {
+  animation: ring-glow 0.5s ease-out;
 }
 
 /* ── 경과 시간 레이블 (Feature A) ── */
