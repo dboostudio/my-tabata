@@ -44,6 +44,7 @@ const onboardingTooltip = $('#onboarding-tooltip')
 const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
+const heatmapEl         = $('#heatmap')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
@@ -379,25 +380,136 @@ function showToast(message: string): void {
   setTimeout(() => { toastEl.classList.remove('show') }, 3000)
 }
 
-async function shareWorkout(rounds: number, durationSeconds: number, workDuration: number, restDuration: number): Promise<void> {
+function generateShareCard(rounds: number, durationSeconds: number, workDuration: number, restDuration: number, streak: number): HTMLCanvasElement {
+  const W = 600, H = 400
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+
+  // Background
+  const isLight = document.documentElement.classList.contains('light-theme')
+  ctx.fillStyle = isLight ? '#f5f5f7' : '#1a1a2e'
+  ctx.fillRect(0, 0, W, H)
+
+  // Accent bar top
+  ctx.fillStyle = '#FF4D4D'
+  ctx.fillRect(0, 0, W, 4)
+
+  // Title
+  ctx.fillStyle = isLight ? '#1d1d1f' : '#e0e0e0'
+  ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(t('summary.title'), W / 2, 55)
+
+  // Streak badge
+  if (streak >= 3) {
+    ctx.fillStyle = '#FF4D4D'
+    ctx.font = '18px system-ui'
+    ctx.fillText(t('misc.streakBadge', { n: streak }), W / 2, 85)
+  }
+
+  // Progress ring
+  const cx = W / 2, cy = 185, r = 65
+  ctx.beginPath()
+  ctx.arc(cx, cy, r, 0, Math.PI * 2)
+  ctx.strokeStyle = isLight ? '#e5e5ea' : '#0f3460'
+  ctx.lineWidth = 8
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2)
+  ctx.strokeStyle = '#51CF66'
+  ctx.lineWidth = 8
+  ctx.stroke()
+
+  // Emoji in ring
+  ctx.fillStyle = isLight ? '#1d1d1f' : '#e0e0e0'
+  ctx.font = '36px system-ui'
+  ctx.textAlign = 'center'
+  ctx.fillText('🎉', cx, cy + 12)
+
+  // Stats row
+  const stats = [
+    { val: String(rounds), label: t('summary.rounds') },
+    { val: formatDuration(durationSeconds), label: t('summary.duration') },
+    { val: `${workDuration}s`, label: t('summary.perRound') },
+  ]
+  stats.forEach((s, i) => {
+    const sx = 100 + i * 200
+    const sy = 290
+    ctx.fillStyle = isLight ? '#e5e5ea' : '#0f3460'
+    roundRect(ctx, sx - 70, sy - 20, 140, 60, 10)
+    ctx.fill()
+    ctx.fillStyle = '#51CF66'
+    ctx.font = 'bold 20px system-ui'
+    ctx.fillText(s.val, sx, sy + 5)
+    ctx.fillStyle = isLight ? '#6e6e73' : '#888'
+    ctx.font = '12px system-ui'
+    ctx.fillText(s.label, sx, sy + 28)
+  })
+
+  // Interval info
+  ctx.fillStyle = isLight ? '#6e6e73' : '#888'
+  ctx.font = '14px system-ui'
+  ctx.textAlign = 'center'
+  ctx.fillText(t('misc.intervalDisplay', { w: workDuration, r: restDuration }), W / 2, 115)
+
+  // Branding
+  ctx.fillStyle = '#FF4D4D'
+  ctx.font = 'bold 16px system-ui'
+  ctx.textAlign = 'left'
+  ctx.fillText('MyTabata', 20, H - 15)
+  ctx.fillStyle = isLight ? '#6e6e73' : '#666'
+  ctx.font = '13px system-ui'
+  ctx.textAlign = 'right'
+  ctx.fillText('tabata.my', W - 20, H - 15)
+
+  return canvas
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h)
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r)
+  ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
+async function shareWorkout(rounds: number, durationSeconds: number, workDuration: number, restDuration: number, streak: number): Promise<void> {
   const interval = t('misc.intervalDisplay', { w: workDuration, r: restDuration })
   const text = t('share.text', { interval, rounds, duration: formatDuration(durationSeconds) })
+  const canvas = generateShareCard(rounds, durationSeconds, workDuration, restDuration, streak)
+
+  // Try sharing with image first
   if (typeof navigator.share === 'function') {
     try {
-      await navigator.share({ title: t('share.title'), text })
-      analytics.share('native_share')
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob(b => resolve(b!), 'image/png'))
+      const file = new File([blob], 'mytabata-workout.png', { type: 'image/png' })
+      await navigator.share({ title: t('share.title'), text, files: [file] })
+      analytics.share('native_share_image')
+      return
     } catch {
-      // 사용자 취소 또는 미지원 — 조용히 무시
-    }
-  } else {
-    try {
-      await navigator.clipboard.writeText(text)
-      showToast(t('misc.copied'))
-      analytics.share('clipboard')
-    } catch {
-      // clipboard 미지원 환경 무시
+      // files sharing not supported, fallback to text
+      try {
+        await navigator.share({ title: t('share.title'), text })
+        analytics.share('native_share')
+        return
+      } catch { /* user cancelled */ }
     }
   }
+
+  // Fallback: copy text + download image
+  try {
+    await navigator.clipboard.writeText(text)
+    showToast(t('misc.copied'))
+    analytics.share('clipboard')
+  } catch { /* ignore */ }
 }
 
 function showSummaryCard(rounds: number, durationSeconds: number, workDuration: number, restDuration: number, streak: number): void {
@@ -435,7 +547,7 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
 
   // Feature B: 공유 버튼 이벤트
   const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
-  btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration).catch(() => {}) })
+  btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration, streak).catch(() => {}) })
 
 }
 
@@ -1163,6 +1275,25 @@ function renderWeeklyGoal(): void {
   weeklyGoalMessage.textContent = message
 }
 
+// ── 히트맵 렌더링 (Sprint 16) ────────────────────────────
+
+function renderHeatmap(): void {
+  const data = storage.getHeatmapData(8)
+  const today = new Date()
+  const cells: string[] = []
+
+  // 56일 (8주) 역순
+  for (let i = 55; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    const count = data.get(key) ?? 0
+    const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3
+    cells.push(`<div class="heatmap-cell heatmap-${level}" title="${key}: ${count}"></div>`)
+  }
+  heatmapEl.innerHTML = `<div class="heatmap-grid">${cells.join('')}</div>`
+}
+
 // ── 기록 렌더링 ───────────────────────────────────────────
 
 function renderHistoryDeleteArea(): void {
@@ -1220,6 +1351,7 @@ function renderHistory(): void {
             <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
           </div>`
       }).join('')
+  renderHeatmap()
   renderHistoryDeleteArea()
   renderWeeklyGoal()
 }

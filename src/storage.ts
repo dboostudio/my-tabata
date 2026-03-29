@@ -77,4 +77,20 @@ export class WorkoutStorage {
 
     return { total: history.length, thisWeek, streak }
   }
+
+  /** 최근 n주간 날짜별 운동 횟수 반환 */
+  getHeatmapData(weeks = 8): Map<string, number> {
+    const history = this.getHistory()
+    const map = new Map<string, number>()
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - weeks * 7)
+
+    for (const r of history) {
+      const d = new Date(r.date)
+      if (d < cutoff) continue
+      const key = d.toISOString().slice(0, 10) // YYYY-MM-DD
+      map.set(key, (map.get(key) ?? 0) + 1)
+    }
+    return map
+  }
 }

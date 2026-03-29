@@ -69,6 +69,9 @@ input:focus-visible {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-left: calc(24px + env(safe-area-inset-left, 0px));
+  padding-right: calc(24px + env(safe-area-inset-right, 0px));
   background: var(--surface);
 }
 .logo {
@@ -737,7 +740,7 @@ input:focus-visible {
 /* ── Sprint 6: 토스트 알림 (Feature B) ── */
 .toast {
   position: fixed;
-  bottom: 32px;
+  bottom: calc(32px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(80px);
   background: var(--surface2);
@@ -950,6 +953,7 @@ input:focus-visible {
   bottom: 0;
   left: 0;
   right: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--surface2);
   border-top: 1px solid color-mix(in srgb, var(--phase-color) 30%, transparent);
   padding: 12px 20px;
@@ -1193,6 +1197,48 @@ input:focus-visible {
 .seo-content details p {
   margin-top: 8px;
 }
+
+/* ── Sprint 16: 히스토리 항목 입장 애니메이션 ── */
+@keyframes history-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.history-item {
+  animation: history-slide-in 0.3s ease both;
+}
+.history-item:nth-child(1)  { animation-delay: 0s; }
+.history-item:nth-child(2)  { animation-delay: 0.03s; }
+.history-item:nth-child(3)  { animation-delay: 0.06s; }
+.history-item:nth-child(4)  { animation-delay: 0.09s; }
+.history-item:nth-child(5)  { animation-delay: 0.12s; }
+.history-item:nth-child(6)  { animation-delay: 0.15s; }
+.history-item:nth-child(7)  { animation-delay: 0.18s; }
+.history-item:nth-child(8)  { animation-delay: 0.21s; }
+.history-item:nth-child(9)  { animation-delay: 0.24s; }
+.history-item:nth-child(10) { animation-delay: 0.27s; }
+
+/* ── Sprint 16: 히트맵 ── */
+.heatmap {
+  margin-bottom: 16px;
+}
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+}
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--surface2);
+}
+.heatmap-0 { background: var(--surface2); }
+.heatmap-1 { background: #2d6a4f; }
+.heatmap-2 { background: #40916c; }
+.heatmap-3 { background: #51CF66; }
+.light-theme .heatmap-0 { background: var(--surface2); }
+.light-theme .heatmap-1 { background: #b7e4c7; }
+.light-theme .heatmap-2 { background: #74c69d; }
+.light-theme .heatmap-3 { background: #40916c; }
 
 /* Sprint 13: 극소형 화면 (< 360px) */
 @media (max-width: 360px) {
