@@ -3,7 +3,6 @@
 import { TabataTimer, DEFAULT_CONFIG, type Phase, type TimerConfig } from './timer'
 import { AudioManager, type VolumeLevel } from './audio'
 import { SpeechManager } from './speech'
-import { PremiumManager } from './premium'
 import { WorkoutStorage } from './storage'
 import { PRESETS } from './presets'
 import { APP_VERSION } from './version'
@@ -26,9 +25,6 @@ const historyPanel      = $('#history-panel')
 const btnHistory        = $<HTMLButtonElement>('#btn-history')
 const btnCloseHistory   = $<HTMLButtonElement>('#btn-close-history')
 const historyList       = $('#history-list')
-const proModal          = $('#pro-modal')
-const btnBuyPro         = $<HTMLButtonElement>('#btn-buy-pro')
-const btnClosePro       = $<HTMLButtonElement>('#btn-close-pro')
 const presetGrid        = $('#preset-grid')
 const inputWork         = $<HTMLInputElement>('#input-work')
 const inputRest         = $<HTMLInputElement>('#input-rest')
@@ -63,7 +59,6 @@ const pwaInstallBanner  = $('#pwa-install-banner')
 const btnPwaInstall     = $<HTMLButtonElement>('#btn-pwa-install')
 const btnPwaDismiss     = $<HTMLButtonElement>('#btn-pwa-dismiss')
 const appVersionLabel   = $('#app-version-label')
-const btnContinueFree   = $<HTMLAnchorElement>('#btn-continue-free')
 const errorBoundary     = $('#error-boundary')
 
 // ── 서비스 인스턴스 ───────────────────────────────────────
@@ -71,7 +66,6 @@ const errorBoundary     = $('#error-boundary')
 const timer    = new TabataTimer(DEFAULT_CONFIG)
 const audio    = new AudioManager()
 const speech   = new SpeechManager()
-const premium  = new PremiumManager()
 const storage  = new WorkoutStorage()
 
 // ── 설정 저장/불러오기 (Feature C) ───────────────────────
@@ -393,9 +387,7 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
     ? `<div class="summary-badge">🔥 ${streak}일 연속!</div>`
     : ''
   // Feature A: Pro 업그레이드 유도 배너 (FREE 사용자만)
-  const upgradeBanner = !premium.isPro()
-    ? `<span class="summary-upgrade-banner" id="summary-upgrade-link">Pro로 업그레이드하면 기록이 저장됩니다 →</span>`
-    : ''
+  const upgradeBanner = ''
   summaryCard.innerHTML = `
     <div class="summary-emoji">🎉</div>
     <div class="summary-title">운동 완료!</div>
@@ -424,11 +416,6 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
   btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration).catch(() => {}) })
 
   // Feature A: 업그레이드 배너 탭 → Pro 모달 열기 + 배너 숨기기
-  const upgradeLink = document.getElementById('summary-upgrade-link') as HTMLElement | null
-  upgradeLink?.addEventListener('click', () => {
-    openPanel(proModal, upgradeLink as HTMLElement)
-    upgradeLink.style.display = 'none'
-  })
 }
 
 function hideSummaryCard(): void {
@@ -538,7 +525,6 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
     case 'Escape':
       closePanel(settingsPanel)
       closePanel(historyPanel)
-      closePanel(proModal)
       break
   }
 })
@@ -748,8 +734,8 @@ timer.on(event => {
     // 휴식 시각적 구분 (Sprint 3 Feature B)
     setRestMode(phase === 'rest' || phase === 'cooldown')
 
-    // 음성 안내 (Pro)
-    if (voiceEnabled && premium.isPro()) {
+    // 음성 안내
+    if (voiceEnabled) {
       if (phase === 'work') {
         if (round === state.config.totalRounds) speech.lastRound()
         else speech.workStart(round, state.config.totalRounds)
@@ -784,13 +770,13 @@ timer.on(event => {
     // 카운트다운 틱음
     if (phase === 'countdown') {
       audio.countdown(timeRemaining)
-      if (voiceEnabled && premium.isPro()) speech.countdown(timeRemaining)
+      if (voiceEnabled) speech.countdown(timeRemaining)
     }
   }
 
   if (event.type === 'COMPLETE') {
     audio.complete()
-    if (voiceEnabled && premium.isPro()) speech.complete()
+    if (voiceEnabled) speech.complete()
     stopElapsedTimer()
     updateTabTitle('complete', 0)
     releaseWakeLock()
@@ -810,7 +796,7 @@ timer.on(event => {
       : (config.workDuration + config.restDuration) * config.totalRounds + config.countdownDuration
 
     // 운동 기록 저장 먼저 (Sprint 4 Feature D: 저장 후 streak 조회해야 당일 반영)
-    if (premium.isPro() && workoutStartTime) {
+    if (workoutStartTime) {
       storage.saveWorkout({
         date: new Date().toISOString(),
         rounds: config.totalRounds,
@@ -822,7 +808,7 @@ timer.on(event => {
     workoutStartTime = null
 
     // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
-    const streak = premium.isPro() ? storage.getStats().streak : 0
+    const streak = storage.getStats().streak
     showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, streak)
 
     // 배경 틴트 리셋 (Sprint 4 Feature C)
@@ -981,9 +967,8 @@ btnClose.addEventListener('click', () => {
   scrollToTop()
 })
 
-// 기록 패널 (Pro)
+// 기록 패널
 btnHistory.addEventListener('click', () => {
-  if (!premium.isPro()) { openPanel(proModal, btnHistory); return }
   renderHistory()
   openPanel(historyPanel, btnHistory)
 })
@@ -1008,7 +993,7 @@ btnVoice.addEventListener('click', () => {
   if (next === 0) {
     voiceEnabled = false
     speech.setEnabled(false)
-  } else if (premium.isPro()) {
+  } else {
     voiceEnabled = true
     speech.setEnabled(true)
   }
@@ -1018,9 +1003,6 @@ btnVoice.addEventListener('click', () => {
   btnVoice.title = VOLUME_TITLES[next]
 })
 
-// Pro 모달
-btnBuyPro.addEventListener('click', () => premium.openPurchasePage())
-btnClosePro.addEventListener('click', () => closePanel(proModal))
 
 // ── Sprint 7 Feature C: 입력 실시간 검증 이벤트 ────────────
 
@@ -1032,7 +1014,6 @@ function attachInputValidation(): void {
 
 // 설정 적용 (Pro: 커스텀 인터벌)
 btnApplyConfig.addEventListener('click', () => {
-  if (!premium.isPro()) { openPanel(proModal, btnApplyConfig); return }
   // Sprint 7 Feature C: 적용 전 입력값 검증
   const workValid   = validateInput({ min: 5,  max: 300, errorEl: errWork,   inputEl: inputWork })
   const restValid   = validateInput({ min: 3,  max: 180, errorEl: errRest,   inputEl: inputRest })
@@ -1071,22 +1052,17 @@ btnApplyConfig.addEventListener('click', () => {
 // ── 프리셋 렌더링 (Pro) ───────────────────────────────────
 
 function renderPresets(): void {
-  const freeId = 'tabata-classic'
   presetGrid.innerHTML = PRESETS.map(p => {
-    const locked = !premium.isPro() && p.id !== freeId
-    // Feature A: 총 소요 시간 배지
     const totalSecs = (p.config.workDuration + p.config.restDuration) * p.config.totalRounds + p.config.countdownDuration
     const totalBadge = formatDuration(totalSecs)
     const isActive = p.id === activePresetId
     return `
     <button class="preset-btn${isActive ? ' active' : ''}"
             data-id="${p.id}"
-            ${locked ? 'data-locked="true"' : ''}
             title="${p.description}">
       <div class="preset-header">
         <span class="preset-emoji">${p.emoji}</span>
         <span class="preset-name">${p.name}</span>
-        ${locked ? '<span class="lock-icon">🔒</span>' : ''}
       </div>
       <span class="preset-description">${p.description}</span>
       ${p.id !== 'custom' ? `<span class="preset-duration">총 ${totalBadge}</span>` : ''}
@@ -1095,7 +1071,6 @@ function renderPresets(): void {
 
   presetGrid.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (btn.dataset['locked']) { openPanel(proModal, btn); return }
       const preset = PRESETS.find(p => p.id === btn.dataset['id'])
       if (!preset) return
 
@@ -1234,20 +1209,6 @@ function renderHistory(): void {
   renderWeeklyGoal()
 }
 
-// ── Pro 배지 표시 ─────────────────────────────────────────
-
-function updateProUI(): void {
-  const isPro = premium.isPro()
-  document.querySelectorAll('.pro-badge').forEach(el => {
-    (el as HTMLElement).style.display = isPro ? 'none' : 'inline'
-  })
-  if (isPro) {
-    document.querySelectorAll<HTMLElement>('[data-locked]').forEach(el => {
-      el.removeAttribute('data-locked')
-      el.querySelector('.lock-icon')?.remove()
-    })
-  }
-}
 
 // ── Sprint 9 Feature A: PWA 설치 배너 ────────────────────
 
@@ -1315,14 +1276,6 @@ btnPwaDismiss.addEventListener('click', () => {
 document.getElementById('panel-overlay')?.addEventListener('click', () => {
   closePanel(settingsPanel)
   closePanel(historyPanel)
-  closePanel(proModal)
-})
-
-// ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" 링크 ──
-
-btnContinueFree.addEventListener('click', (e: MouseEvent) => {
-  e.preventDefault()
-  proModal.classList.remove('open')
 })
 
 // ── 초기화 ───────────────────────────────────────────────
@@ -1335,7 +1288,7 @@ function init(): void {
 
   // Feature C: 저장된 설정 불러오기
   const saved = loadSettings()
-  if (saved && premium.isPro()) {
+  if (saved) {
     const warmupOn   = saved.warmupEnabled   === true
     const cooldownOn = saved.cooldownEnabled === true
     const config: TimerConfig = {
@@ -1372,7 +1325,6 @@ function init(): void {
   btnVoice.classList.toggle('active', vol > 0)
 
   renderPresets()
-  updateProUI()
 
   // Sprint 7 Feature C: 입력 실시간 검증
   attachInputValidation()
