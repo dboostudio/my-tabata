@@ -276,9 +276,6 @@ input  { font-family: inherit; }
   margin-bottom: 16px;
 }
 .input-group label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   font-size: 0.9rem;
   color: var(--text-muted);
 }
@@ -916,6 +913,47 @@ input  { font-family: inherit; }
 .weekly-goal-message {
   font-size: 0.78rem;
   color: var(--text-muted);
+}
+
+/* ── Sprint 7 Feature B: 타이머 숫자 tick 펄스 애니메이션 ── */
+@keyframes tick-pulse {
+  0%   { transform: scale(0.92); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1.0);  }
+}
+
+.timer-number.tick-pulse {
+  animation: tick-pulse 0.15s ease-out forwards;
+}
+
+/* ── Sprint 7 Feature C: 입력 검증 에러 표시 ── */
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.input-error {
+  font-size: 0.75rem;
+  color: var(--color-work);
+  min-height: 1em;
+  padding-left: 4px;
+  transition: opacity 0.2s;
+}
+
+.input-group input.input-invalid {
+  border-color: var(--color-work);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-work) 25%, transparent);
+}
+
+/* ── Sprint 7 Feature D: 프리셋 활성 상태 표시 ── */
+.preset-btn.active {
+  border: 2px solid var(--phase-color);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--phase-color) 35%, transparent);
+  background: color-mix(in srgb, var(--surface2) 80%, var(--phase-color) 20%);
 }
 
 /* ── 반응형 ── */

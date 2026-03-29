@@ -80,15 +80,21 @@
     <section class="section">
       <h3>커스텀 인터벌 <span class="pro-badge">Pro</span></h3>
       <div class="input-group">
-        <label>운동 시간 (초)
-          <input id="input-work" type="number" min="5" max="300" value="20" />
-        </label>
-        <label>휴식 시간 (초)
-          <input id="input-rest" type="number" min="3" max="120" value="10" />
-        </label>
-        <label>라운드 수
-          <input id="input-rounds" type="number" min="1" max="20" value="8" />
-        </label>
+        <div class="input-row">
+          <label for="input-work">운동 시간 (초)</label>
+          <input id="input-work" type="number" min="5" max="300" value="20" aria-describedby="err-work" />
+        </div>
+        <div id="err-work" class="input-error" aria-live="polite"></div>
+        <div class="input-row">
+          <label for="input-rest">휴식 시간 (초)</label>
+          <input id="input-rest" type="number" min="3" max="180" value="10" aria-describedby="err-rest" />
+        </div>
+        <div id="err-rest" class="input-error" aria-live="polite"></div>
+        <div class="input-row">
+          <label for="input-rounds">라운드 수</label>
+          <input id="input-rounds" type="number" min="1" max="99" value="8" aria-describedby="err-rounds" />
+        </div>
+        <div id="err-rounds" class="input-error" aria-live="polite"></div>
       </div>
       <button id="btn-apply-config" class="btn-outline">적용</button>
     </section>

@@ -44,6 +44,9 @@ const historyDeleteArea = $('#history-delete-area');
 const toggleMinimalist = $('#toggle-minimalist');
 const toggleWarmup = $('#toggle-warmup');
 const toggleCooldown = $('#toggle-cooldown');
+const errWork = $('#err-work');
+const errRest = $('#err-rest');
+const errRounds = $('#err-rounds');
 const weeklyGoalCard = $('#weekly-goal-card');
 const weeklyGoalProgress = $('#weekly-goal-progress');
 const weeklyGoalCount = $('#weekly-goal-count');
@@ -73,8 +76,8 @@ function loadSettings() {
             return null;
         const parsed = JSON.parse(raw);
         const work = Math.max(5, Math.min(300, Number(parsed.workDuration) || 0));
-        const rest = Math.max(3, Math.min(120, Number(parsed.restDuration) || 0));
-        const rounds = Math.max(1, Math.min(20, Number(parsed.totalRounds) || 0));
+        const rest = Math.max(3, Math.min(180, Number(parsed.restDuration) || 0));
+        const rounds = Math.max(1, Math.min(99, Number(parsed.totalRounds) || 0));
         if (!work || !rest || !rounds)
             return null;
         return {
@@ -119,10 +122,43 @@ function applyMinimalistMode(enabled) {
 // ── 상태 ─────────────────────────────────────────────────
 let voiceEnabled = false;
 let workoutStartTime = null;
+let activePresetId = null;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
 // ── 인터벌 설정 표시 (Sprint 4 Feature A) ─────────────────
 function updateIntervalDisplay(workDuration, restDuration) {
     intervalDisplay.textContent = `${workDuration}s 운동 / ${restDuration}s 휴식`;
+}
+function validateInput(spec) {
+    const val = Number(spec.inputEl.value);
+    if (isNaN(val) || val < spec.min) {
+        spec.inputEl.classList.add('input-invalid');
+        spec.errorEl.textContent = `최소 ${spec.min}초`;
+        return false;
+    }
+    if (val > spec.max) {
+        spec.inputEl.classList.add('input-invalid');
+        spec.errorEl.textContent = `최대 ${spec.max}초`;
+        return false;
+    }
+    spec.inputEl.classList.remove('input-invalid');
+    spec.errorEl.textContent = '';
+    return true;
+}
+function validateRoundsInput() {
+    const val = Number(inputRounds.value);
+    if (isNaN(val) || val < 1) {
+        inputRounds.classList.add('input-invalid');
+        errRounds.textContent = '최소 1라운드';
+        return false;
+    }
+    if (val > 99) {
+        inputRounds.classList.add('input-invalid');
+        errRounds.textContent = '최대 99라운드';
+        return false;
+    }
+    inputRounds.classList.remove('input-invalid');
+    errRounds.textContent = '';
+    return true;
 }
 // ── 페이즈별 배경 색상 틴트 (Sprint 4 Feature C) ──────────
 function setBodyTint(phase) {
@@ -547,6 +583,8 @@ timer.on(event => {
         const { label, color } = phaseMap[phase];
         phaseLabel.textContent = label;
         document.documentElement.style.setProperty('--phase-color', color);
+        // Sprint 7 Feature A: 링 색상을 명시적으로 업데이트해 rAF 도중 색상 전환 보장
+        timerCircle.style.stroke = color;
         // 페이즈별 배경 색상 틴트 (Sprint 4 Feature C)
         setBodyTint(phase);
         // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
@@ -629,6 +667,10 @@ timer.on(event => {
     if (event.type === 'TICK') {
         const { phase, timeRemaining } = state;
         timerNumber.textContent = String(timeRemaining);
+        // Sprint 7 Feature B: 숫자 tick 펄스 애니메이션
+        timerNumber.classList.remove('tick-pulse');
+        void timerNumber.offsetWidth;
+        timerNumber.classList.add('tick-pulse');
         // 탭 타이틀 업데이트
         updateTabTitle(phase, timeRemaining);
         // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
@@ -712,6 +754,10 @@ btnStart.addEventListener('click', () => {
     }
     const state = timer.getState();
     if (state.phase === 'complete' || state.phase === 'idle') {
+        // Sprint 7 Feature F: 시작 시 설정/기록 패널 닫기 + 타이머로 스크롤
+        settingsPanel.classList.remove('open');
+        historyPanel.classList.remove('open');
+        document.querySelector('.timer-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         hideSummaryCard();
         timer.reset();
         timer.start();
@@ -790,16 +836,28 @@ btnVoice.addEventListener('click', () => {
 // Pro 모달
 btnBuyPro.addEventListener('click', () => premium.openPurchasePage());
 btnClosePro.addEventListener('click', () => proModal.classList.remove('open'));
+// ── Sprint 7 Feature C: 입력 실시간 검증 이벤트 ────────────
+function attachInputValidation() {
+    inputWork.addEventListener('input', () => validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }));
+    inputRest.addEventListener('input', () => validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest }));
+    inputRounds.addEventListener('input', () => validateRoundsInput());
+}
 // 설정 적용 (Pro: 커스텀 인터벌)
 btnApplyConfig.addEventListener('click', () => {
     if (!premium.isPro()) {
         proModal.classList.add('open');
         return;
     }
+    // Sprint 7 Feature C: 적용 전 입력값 검증
+    const workValid = validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork });
+    const restValid = validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest });
+    const roundsValid = validateRoundsInput();
+    if (!workValid || !restValid || !roundsValid)
+        return;
     const config = {
         workDuration: Math.max(5, Math.min(300, Number(inputWork.value) || 20)),
-        restDuration: Math.max(3, Math.min(120, Number(inputRest.value) || 10)),
-        totalRounds: Math.max(1, Math.min(20, Number(inputRounds.value) || 8)),
+        restDuration: Math.max(3, Math.min(180, Number(inputRest.value) || 10)),
+        totalRounds: Math.max(1, Math.min(99, Number(inputRounds.value) || 8)),
         countdownDuration: 3,
         warmupDuration: toggleWarmup.checked ? 60 : 0,
         cooldownDuration: toggleCooldown.checked ? 60 : 0,
@@ -819,6 +877,9 @@ btnApplyConfig.addEventListener('click', () => {
         warmupEnabled: toggleWarmup.checked,
         cooldownEnabled: toggleCooldown.checked,
     });
+    // Sprint 7 Feature D: 커스텀 설정 적용 시 프리셋 active 해제
+    activePresetId = null;
+    renderPresets();
     settingsPanel.classList.remove('open');
 });
 // ── 프리셋 렌더링 (Pro) ───────────────────────────────────
@@ -829,8 +890,9 @@ function renderPresets() {
         // Feature A: 총 소요 시간 배지
         const totalSecs = (p.config.workDuration + p.config.restDuration) * p.config.totalRounds + p.config.countdownDuration;
         const totalBadge = formatDuration(totalSecs);
+        const isActive = p.id === activePresetId;
         return `
-    <button class="preset-btn"
+    <button class="preset-btn${isActive ? ' active' : ''}"
             data-id="${p.id}"
             ${locked ? 'data-locked="true"' : ''}
             title="${p.description}">
@@ -869,6 +931,9 @@ function renderPresets() {
             updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration);
             // 설정 저장 (Feature C)
             saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds });
+            // Sprint 7 Feature D: 활성 프리셋 표시
+            activePresetId = preset.id;
+            renderPresets();
             settingsPanel.classList.remove('open');
         });
     });
@@ -1026,6 +1091,8 @@ function init() {
     btnVoice.classList.toggle('active', vol > 0);
     renderPresets();
     updateProUI();
+    // Sprint 7 Feature C: 입력 실시간 검증
+    attachInputValidation();
     // 미니멀리스트 모드 초기화 (Sprint 5)
     applyMinimalistMode(loadMinimalistMode());
     toggleMinimalist.addEventListener('change', () => {
