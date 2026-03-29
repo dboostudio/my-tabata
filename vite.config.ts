@@ -8,7 +8,7 @@ export default defineConfig({
       manifest: {
         name: 'MyTabata — 타바타 타이머',
         short_name: 'MyTabata',
-        description: '가장 심플한 타바타 인터벌 타이머 PWA',
+        description: 'Free Tabata interval timer PWA with 8 presets, voice guidance, and offline support',
         theme_color: '#FF4D4D',
         background_color: '#1a1a2e',
         display: 'standalone',

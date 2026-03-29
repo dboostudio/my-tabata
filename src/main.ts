@@ -691,6 +691,15 @@ document.addEventListener('keydown', (e: KeyboardEvent) => {
   }
 })
 
+// ── 운동 중 페이지 이탈 방지 (Sprint 25) ──────────────
+
+window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
+  const state = timer.getState()
+  if (state.isRunning || (state.phase !== 'idle' && state.phase !== 'complete')) {
+    e.preventDefault()
+  }
+})
+
 // ── 키보드 단축키 도움말 (Sprint 21) ────────────────────
 
 function toggleKeyboardHelp(): void {
