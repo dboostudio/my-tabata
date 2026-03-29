@@ -53,6 +53,7 @@ const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const btnSavePreset     = $<HTMLButtonElement>('#btn-save-preset')
 const estimatedTimeEl   = $('#estimated-time')
+const welcomeModal      = $('#welcome-modal')
 const customPresetList  = $('#custom-preset-list')
 const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
 const toggleCooldown    = $<HTMLInputElement>('#toggle-cooldown')
@@ -1446,18 +1447,35 @@ function renderWeeklyGoal(): void {
 function renderHeatmap(): void {
   const data = storage.getHeatmapData(8)
   const today = new Date()
-  const cells: string[] = []
+  const dayLabels = ['', 'M', '', 'W', '', 'F', '']
 
-  // 56일 (8주) 역순
-  for (let i = 55; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const key = d.toISOString().slice(0, 10)
-    const count = data.get(key) ?? 0
-    const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3
-    cells.push(`<div class="heatmap-cell heatmap-${level}" title="${key}: ${count}"></div>`)
+  // 8주 데이터를 7행(요일) × 8열(주) 그리드로 배치
+  // 오늘 요일 기준으로 마지막 열 결정
+  const todayDay = today.getDay() // 0=Sun
+  const startDate = new Date(today)
+  startDate.setDate(startDate.getDate() - 55 - todayDay) // 8주 전 일요일
+
+  const grid: string[][] = Array.from({ length: 7 }, () => [])
+  for (let week = 0; week < 8; week++) {
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(startDate)
+      d.setDate(d.getDate() + week * 7 + day)
+      if (d > today) {
+        grid[day]!.push('<div class="heatmap-cell heatmap-empty"></div>')
+        continue
+      }
+      const key = d.toISOString().slice(0, 10)
+      const count = data.get(key) ?? 0
+      const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3
+      grid[day]!.push(`<div class="heatmap-cell heatmap-${level}" title="${key}: ${count}"></div>`)
+    }
   }
-  heatmapEl.innerHTML = `<div class="heatmap-grid">${cells.join('')}</div>`
+
+  const rows = grid.map((cells, i) =>
+    `<div class="heatmap-row"><span class="heatmap-day-label">${dayLabels[i]}</span>${cells.join('')}</div>`
+  ).join('')
+
+  heatmapEl.innerHTML = `<div class="heatmap-week-grid">${rows}</div>`
 }
 
 // ── 기록 렌더링 ───────────────────────────────────────────
@@ -1647,6 +1665,31 @@ document.getElementById('panel-overlay')?.addEventListener('click', () => {
 function init(): void {
   // i18n 초기화 (가장 먼저)
   initI18n()
+
+  // 첫 방문 시 언어 선택 모달 (Sprint 23)
+  const WELCOME_KEY = 'tabata_welcomed'
+  try {
+    if (!localStorage.getItem(WELCOME_KEY)) {
+      welcomeModal.style.display = 'flex'
+      welcomeModal.querySelectorAll<HTMLButtonElement>('.welcome-lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lang = btn.dataset['lang'] as Lang
+          setLanguage(lang)
+          selectLanguage.value = lang
+          localStorage.setItem(WELCOME_KEY, '1')
+          welcomeModal.style.display = 'none'
+          // 동적 UI 갱신
+          const cfg = timer.getState().config
+          updateIntervalDisplay(cfg.workDuration, cfg.restDuration)
+          renderPresets()
+          renderCustomPresets()
+          updateEstimatedTime()
+          phaseLabel.textContent = t('phase.idle')
+          btnStart.textContent = t('btn.start')
+        })
+      })
+    }
+  } catch { /* ignore */ }
 
   // 초기 원형 프로그레스 설정
   timerCircle.style.strokeDasharray = String(CIRCLE_CIRCUMFERENCE)

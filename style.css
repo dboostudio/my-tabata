@@ -1223,6 +1223,57 @@ input:focus-visible {
   margin-top: 8px;
 }
 
+/* ── Sprint 23: 웰컴 모달 ── */
+.welcome-modal {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: welcome-fade-in 0.5s ease;
+}
+@keyframes welcome-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.welcome-inner {
+  text-align: center;
+  padding: 32px;
+  max-width: 360px;
+  width: 100%;
+}
+.welcome-logo {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-work);
+  margin-bottom: 8px;
+}
+.welcome-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+.welcome-langs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.welcome-lang-btn {
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  text-align: left;
+  transition: background 0.2s, transform 0.1s;
+}
+.welcome-lang-btn:hover {
+  background: var(--surface2);
+  transform: translateX(4px);
+}
+
 /* ── Sprint 21: 키보드 단축키 도움말 ── */
 .keyboard-help-overlay {
   position: fixed;
@@ -1383,15 +1434,31 @@ input:focus-visible {
 .heatmap {
   margin-bottom: 16px;
 }
-.heatmap-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 3px;
+.heatmap-week-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.heatmap-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.heatmap-day-label {
+  width: 16px;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: right;
+  flex-shrink: 0;
 }
 .heatmap-cell {
+  flex: 1;
   aspect-ratio: 1;
-  border-radius: 3px;
+  border-radius: 2px;
   background: var(--surface2);
+}
+.heatmap-empty {
+  background: transparent;
 }
 .heatmap-0 { background: var(--surface2); }
 .heatmap-1 { background: #2d6a4f; }
