@@ -5,8 +5,8 @@ export default defineConfig({
         VitePWA({
             registerType: 'autoUpdate',
             manifest: {
-                name: 'TabataGo — 타바타 타이머',
-                short_name: 'TabataGo',
+                name: 'MyTabata — 타바타 타이머',
+                short_name: 'MyTabata',
                 description: '가장 심플한 타바타 인터벌 타이머 PWA',
                 theme_color: '#FF4D4D',
                 background_color: '#1a1a2e',

@@ -364,10 +364,10 @@ function showToast(message: string): void {
 
 async function shareWorkout(rounds: number, durationSeconds: number, workDuration: number, restDuration: number): Promise<void> {
   const interval = `${workDuration}s 운동 / ${restDuration}s 휴식`
-  const text = `💪 TabataGo 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabata.my`
+  const text = `💪 MyTabata 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabata.my`
   if (typeof navigator.share === 'function') {
     try {
-      await navigator.share({ title: 'TabataGo 운동 완료', text })
+      await navigator.share({ title: 'MyTabata 운동 완료', text })
     } catch {
       // 사용자 취소 또는 미지원 — 조용히 무시
     }
@@ -490,27 +490,27 @@ document.addEventListener('visibilitychange', () => {
 
 // ── 탭 타이틀 업데이트 ───────────────────────────────────
 
-const DEFAULT_TITLE = 'TabataGo — 타바타 타이머'
+const DEFAULT_TITLE = 'MyTabata — 타바타 타이머'
 
 function updateTabTitle(phase: Phase, timeRemaining: number): void {
   switch (phase) {
     case 'warmup':
-      document.title = `워밍업 ${timeRemaining}s | TabataGo`
+      document.title = `워밍업 ${timeRemaining}s | MyTabata`
       break
     case 'work':
-      document.title = `운동! ${timeRemaining}s | TabataGo`
+      document.title = `운동! ${timeRemaining}s | MyTabata`
       break
     case 'rest':
-      document.title = `휴식 ${timeRemaining}s | TabataGo`
+      document.title = `휴식 ${timeRemaining}s | MyTabata`
       break
     case 'cooldown':
-      document.title = `쿨다운 ${timeRemaining}s | TabataGo`
+      document.title = `쿨다운 ${timeRemaining}s | MyTabata`
       break
     case 'countdown':
-      document.title = `준비 ${timeRemaining}s | TabataGo`
+      document.title = `준비 ${timeRemaining}s | MyTabata`
       break
     case 'complete':
-      document.title = '완료! 🎉 | TabataGo'
+      document.title = '완료! 🎉 | MyTabata'
       break
     default:
       document.title = DEFAULT_TITLE
@@ -1403,7 +1403,7 @@ function init(): void {
 try {
   init()
 } catch (err) {
-  console.error('[TabataGo] 초기화 오류:', err)
+  console.error('[MyTabata] 초기화 오류:', err)
   // 앱 콘텐츠 숨기고 에러 폴백 표시
   document.querySelector<HTMLElement>('.header')?.style.setProperty('display', 'none')
   document.querySelector<HTMLElement>('.timer-container')?.style.setProperty('display', 'none')
