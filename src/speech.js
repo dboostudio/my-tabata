@@ -1,4 +1,5 @@
-// 📄 src/speech.ts — Web Speech API 음성 안내 (Pro 기능)
+// 📄 src/speech.ts — Web Speech API 음성 안내
+import { t, getCurrentLang, SPEECH_LANG } from './i18n';
 export class SpeechManager {
     constructor() {
         this.synth = null;
@@ -13,22 +14,22 @@ export class SpeechManager {
     _speak(text) {
         if (!this.synth || !this.enabled)
             return;
-        this.synth.cancel(); // 이전 발화 취소
+        this.synth.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
+        utterance.lang = SPEECH_LANG[getCurrentLang()];
         utterance.rate = 1.1;
         utterance.pitch = 1.0;
         utterance.volume = 0.9;
         this.synth.speak(utterance);
     }
     workStart(round, _total) {
-        this._speak(`${round}라운드. 운동 시작!`);
+        this._speak(t('speech.workStart', { round }));
     }
     restStart() {
-        this._speak('휴식!');
+        this._speak(t('speech.restStart'));
     }
     lastRound() {
-        this._speak('마지막 라운드!');
+        this._speak(t('speech.lastRound'));
     }
     countdown(remaining) {
         if (remaining <= 3 && remaining > 0) {
@@ -36,6 +37,6 @@ export class SpeechManager {
         }
     }
     complete() {
-        this._speak('운동 완료! 수고하셨습니다!');
+        this._speak(t('speech.complete'));
     }
 }

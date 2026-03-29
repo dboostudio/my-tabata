@@ -260,14 +260,6 @@ input  { font-family: inherit; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.lock-icon {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 0.75rem;
-  opacity: 0.6;
-}
-
 /* ── 입력 그룹 ── */
 .input-group {
   display: flex;
@@ -302,19 +294,6 @@ input  { font-family: inherit; }
   transition: background 0.2s;
 }
 .btn-outline:hover { background: color-mix(in srgb, var(--phase-color) 15%, transparent); }
-
-/* ── Pro 배너 ── */
-.pro-banner {
-  padding: 16px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #1a1a2e, var(--surface2));
-  border: 1px solid color-mix(in srgb, var(--phase-color) 30%, transparent);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.pro-banner p { font-size: 0.9rem; color: var(--text-muted); }
 
 /* ── 기록 ── */
 .stats-row {
@@ -351,44 +330,6 @@ input  { font-family: inherit; }
 .history-duration { color: var(--phase-color); font-weight: 600; }
 .empty-history  { color: var(--text-muted); text-align: center; padding: 32px 0; }
 
-/* ── Pro 모달 ── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay-bg);
-  z-index: 300;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border-radius: 20px;
-  padding: 32px 24px;
-  max-width: 360px;
-  width: 100%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.modal h2 { font-size: 1.5rem; }
-.pro-features {
-  list-style: none;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 0.95rem;
-}
-.modal-price { font-size: 1rem; color: var(--text-muted); }
-.modal-price strong { color: var(--color-work); font-size: 1.3rem; }
-.btn-large { padding: 16px 32px; font-size: 1rem; border-radius: 50px; }
-.btn-ghost { color: var(--text-muted); font-size: 0.9rem; padding: 8px; }
-.btn-ghost:hover { color: var(--text); }
-
 /* ── 오버레이 (패널 닫기) ── */
 .overlay {
   display: none;
@@ -396,21 +337,7 @@ input  { font-family: inherit; }
   inset: 0;
   z-index: 100;
 }
-.panel.open ~ .overlay,
-.modal-overlay.open ~ .overlay { display: block; }
-
-/* ── Pro 배지 ── */
-.pro-badge {
-  display: inline-block;
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--color-work);
-  color: #fff;
-  font-weight: 700;
-  vertical-align: middle;
-  margin-left: 4px;
-}
+.panel.open ~ .overlay { display: block; }
 
 /* ── 페이즈 전환 펄스 애니메이션 ── */
 @keyframes ring-pulse {
@@ -765,24 +692,6 @@ input  { font-family: inherit; }
   transition: opacity 0.3s;
 }
 
-/* ── Sprint 6: Pro 업그레이드 유도 배너 (Feature A) ── */
-.summary-upgrade-banner {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  color: var(--color-rest);
-  text-decoration: none;
-  opacity: 0.85;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: opacity 0.2s, background 0.2s;
-  display: inline-block;
-}
-.summary-upgrade-banner:hover {
-  opacity: 1;
-  background: color-mix(in srgb, var(--color-rest) 12%, transparent);
-}
-
 /* ── Sprint 6: 공유 버튼 (Feature B) ── */
 .btn-share {
   margin-top: 8px;
@@ -1063,21 +972,6 @@ input  { font-family: inherit; }
 
 .btn-pwa-dismiss:hover {
   background: var(--surface);
-  color: var(--text);
-}
-
-/* ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" ── */
-.pro-modal-free-link {
-  display: block;
-  margin-top: 12px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.pro-modal-free-link:hover {
   color: var(--text);
 }
 

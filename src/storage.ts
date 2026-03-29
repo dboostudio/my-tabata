@@ -1,4 +1,4 @@
-// 📄 src/storage.ts — 운동 기록 관리 (Pro 기능)
+// 📄 src/storage.ts — 운동 기록 관리
 
 const HISTORY_KEY = 'tabatago_history'
 const WEEKLY_GOAL_KEY = 'tabatago_weekly_goal'

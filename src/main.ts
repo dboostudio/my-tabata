@@ -408,7 +408,6 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
   const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
   btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration).catch(() => {}) })
 
-  // Feature A: 업그레이드 배너 탭 → Pro 모달 열기 + 배너 숨기기
 }
 
 function hideSummaryCard(): void {
@@ -967,7 +966,6 @@ btnVoice.addEventListener('click', () => {
   const next = VOLUME_CYCLE[nextIndex]!
   audio.setVolume(next)
 
-  // 음성 안내: 볼륨이 0이 되면 끄고, 0에서 올라오면 Pro 여부에 따라 켜기
   if (next === 0) {
     voiceEnabled = false
     speech.setEnabled(false)
@@ -990,7 +988,7 @@ function attachInputValidation(): void {
   inputRounds.addEventListener('input', () => validateRoundsInput())
 }
 
-// 설정 적용 (Pro: 커스텀 인터벌)
+// ── 설정 적용 ──────────────────────────────────────────────
 btnApplyConfig.addEventListener('click', () => {
   // Sprint 7 Feature C: 적용 전 입력값 검증
   const workValid   = validateInput({ min: 5,  max: 300, errorEl: errWork,   inputEl: inputWork })
@@ -1027,7 +1025,7 @@ btnApplyConfig.addEventListener('click', () => {
   scrollToTop()
 })
 
-// ── 프리셋 렌더링 (Pro) ───────────────────────────────────
+// ── 프리셋 렌더링 ───────────────────────────────────────────
 
 function renderPresets(): void {
   presetGrid.innerHTML = PRESETS.map(p => {

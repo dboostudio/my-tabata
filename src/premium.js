@@ -1,34 +1,9 @@
-// 📄 src/premium.ts — 프리미엄 잠금/해제 관리
-const STORAGE_KEY = 'tabatago_pro';
-const UNLOCK_PARAM = 'unlocked';
-const UNLOCK_TOKEN = 'tabatago_pro_2024';
-// Gumroad 결제 링크 — ?wanted=true 파라미터로 오버레이 모드 활성화
-export const PURCHASE_URL = 'https://gumroad.com/l/tabatago-pro?wanted=true';
+// 📄 src/premium.ts — 프리미엄 관리 (모든 기능 무료 제공)
 export class PremiumManager {
-    constructor() {
-        // URL 파라미터로 결제 완료 감지
-        this._checkUrlUnlock();
-    }
     isPro() {
-        // 개발 환경에서는 Pro 기능 전체 활성화
-        if (import.meta.env.DEV)
-            return true;
-        return localStorage.getItem(STORAGE_KEY) === 'true';
-    }
-    unlock() {
-        localStorage.setItem(STORAGE_KEY, 'true');
-        // URL에서 파라미터 제거
-        const url = new URL(window.location.href);
-        url.searchParams.delete(UNLOCK_PARAM);
-        window.history.replaceState({}, '', url.toString());
+        return true;
     }
     openPurchasePage() {
-        window.open(PURCHASE_URL, '_blank');
-    }
-    _checkUrlUnlock() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get(UNLOCK_PARAM) === UNLOCK_TOKEN) {
-            this.unlock();
-        }
+        // 무료 전환 후 미사용
     }
 }

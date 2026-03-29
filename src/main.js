@@ -2,10 +2,10 @@
 import { TabataTimer, DEFAULT_CONFIG } from './timer';
 import { AudioManager } from './audio';
 import { SpeechManager } from './speech';
-import { PremiumManager } from './premium';
 import { WorkoutStorage } from './storage';
 import { PRESETS } from './presets';
 import { APP_VERSION } from './version';
+import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE } from './i18n';
 // ── DOM 요소 ────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
 const timerCircle = document.querySelector('#timer-circle');
@@ -22,9 +22,6 @@ const historyPanel = $('#history-panel');
 const btnHistory = $('#btn-history');
 const btnCloseHistory = $('#btn-close-history');
 const historyList = $('#history-list');
-const proModal = $('#pro-modal');
-const btnBuyPro = $('#btn-buy-pro');
-const btnClosePro = $('#btn-close-pro');
 const presetGrid = $('#preset-grid');
 const inputWork = $('#input-work');
 const inputRest = $('#input-rest');
@@ -43,6 +40,7 @@ const intervalDisplay = $('#interval-display');
 const progressRingSvg = $('#progress-ring-svg');
 const historyDeleteArea = $('#history-delete-area');
 const toggleMinimalist = $('#toggle-minimalist');
+const selectLanguage = $('#select-language');
 const toggleWarmup = $('#toggle-warmup');
 const toggleCooldown = $('#toggle-cooldown');
 const errWork = $('#err-work');
@@ -59,13 +57,11 @@ const pwaInstallBanner = $('#pwa-install-banner');
 const btnPwaInstall = $('#btn-pwa-install');
 const btnPwaDismiss = $('#btn-pwa-dismiss');
 const appVersionLabel = $('#app-version-label');
-const btnContinueFree = $('#btn-continue-free');
 const errorBoundary = $('#error-boundary');
 // ── 서비스 인스턴스 ───────────────────────────────────────
 const timer = new TabataTimer(DEFAULT_CONFIG);
 const audio = new AudioManager();
 const speech = new SpeechManager();
-const premium = new PremiumManager();
 const storage = new WorkoutStorage();
 // ── 설정 저장/불러오기 (Feature C) ───────────────────────
 const SETTINGS_KEY = 'tabatago_settings';
@@ -134,18 +130,18 @@ let activePresetId = null;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54; // r=54
 // ── 인터벌 설정 표시 (Sprint 4 Feature A) ─────────────────
 function updateIntervalDisplay(workDuration, restDuration) {
-    intervalDisplay.textContent = `${workDuration}s 운동 / ${restDuration}s 휴식`;
+    intervalDisplay.textContent = t('misc.intervalDisplay', { w: workDuration, r: restDuration });
 }
 function validateInput(spec) {
     const val = Number(spec.inputEl.value);
     if (isNaN(val) || val < spec.min) {
         spec.inputEl.classList.add('input-invalid');
-        spec.errorEl.textContent = `최소 ${spec.min}초`;
+        spec.errorEl.textContent = t('validation.minSec', { n: spec.min });
         return false;
     }
     if (val > spec.max) {
         spec.inputEl.classList.add('input-invalid');
-        spec.errorEl.textContent = `최대 ${spec.max}초`;
+        spec.errorEl.textContent = t('validation.maxSec', { n: spec.max });
         return false;
     }
     spec.inputEl.classList.remove('input-invalid');
@@ -156,12 +152,12 @@ function validateRoundsInput() {
     const val = Number(inputRounds.value);
     if (isNaN(val) || val < 1) {
         inputRounds.classList.add('input-invalid');
-        errRounds.textContent = '최소 1라운드';
+        errRounds.textContent = t('validation.minRound');
         return false;
     }
     if (val > 99) {
         inputRounds.classList.add('input-invalid');
-        errRounds.textContent = '최대 99라운드';
+        errRounds.textContent = t('validation.maxRound');
         return false;
     }
     inputRounds.classList.remove('input-invalid');
@@ -184,18 +180,10 @@ function setBodyTint(phase) {
 }
 // ── ARIA SVG 레이블 업데이트 (Sprint 4 Feature E) ─────────
 function updateSvgAriaLabel(phase, timeRemaining, round, totalRounds) {
-    const phaseNames = {
-        idle: '대기',
-        countdown: '준비 카운트다운',
-        warmup: '워밍업',
-        work: '운동',
-        rest: '휴식',
-        cooldown: '쿨다운',
-        complete: '완료',
-    };
+    const phaseName = t(`aria.phase.${phase}`);
     const label = phase === 'idle' || phase === 'complete'
-        ? `타바타 타이머 — ${phaseNames[phase]}`
-        : `타바타 타이머 — ${phaseNames[phase]} ${timeRemaining}초, ${round}/${totalRounds} 라운드`;
+        ? t('aria.timerLabel', { p: phaseName })
+        : t('aria.timerLabelWithTime', { p: phaseName, t: timeRemaining, r: round, total: totalRounds });
     progressRingSvg.setAttribute('aria-label', label);
 }
 // ── 전체 진행 바 (Sprint 3 Feature A) ────────────────────
@@ -218,27 +206,29 @@ function updateNextPhaseLabel(phase, round, config) {
     }
     let text = '';
     if (phase === 'countdown') {
-        text = config.warmupDuration > 0 ? `다음: 워밍업 ${config.warmupDuration}s` : `다음: 운동 ${config.workDuration}s`;
+        text = config.warmupDuration > 0
+            ? t('next.warmup', { d: config.warmupDuration })
+            : t('next.work', { d: config.workDuration });
     }
     else if (phase === 'warmup') {
-        text = `다음: 운동 ${config.workDuration}s`;
+        text = t('next.work', { d: config.workDuration });
     }
     else if (phase === 'work') {
-        text = `다음: 휴식 ${config.restDuration}s`;
+        text = t('next.rest', { d: config.restDuration });
     }
     else if (phase === 'rest') {
         if (round < config.totalRounds) {
-            text = `다음: 운동 ${config.workDuration}s`;
+            text = t('next.work', { d: config.workDuration });
         }
         else if (config.cooldownDuration > 0) {
-            text = `다음: 쿨다운 ${config.cooldownDuration}s`;
+            text = t('next.cooldown', { d: config.cooldownDuration });
         }
         else {
-            text = '다음: 완료!';
+            text = t('next.complete');
         }
     }
     else if (phase === 'cooldown') {
-        text = '다음: 완료!';
+        text = t('next.complete');
     }
     nextPhaseLabel.textContent = text;
     nextPhaseLabel.style.display = 'block';
@@ -300,7 +290,7 @@ function startElapsedTimer() {
         if (!workoutStartTime)
             return;
         const seconds = Math.floor((Date.now() - workoutStartTime.getTime()) / 1000);
-        elapsedLabel.textContent = '경과 ' + formatDuration(seconds);
+        elapsedLabel.textContent = t('misc.elapsed', { t: formatDuration(seconds) });
     }, 500);
 }
 function stopElapsedTimer() {
@@ -327,11 +317,11 @@ function showToast(message) {
     setTimeout(() => { toastEl.classList.remove('show'); }, 3000);
 }
 async function shareWorkout(rounds, durationSeconds, workDuration, restDuration) {
-    const interval = `${workDuration}s 운동 / ${restDuration}s 휴식`;
-    const text = `💪 MyTabata 운동 완료!\n${interval} × ${rounds}라운드\n총 ${formatDuration(durationSeconds)} 완주!\nhttps://tabata.my`;
+    const interval = t('misc.intervalDisplay', { w: workDuration, r: restDuration });
+    const text = t('share.text', { interval, rounds, duration: formatDuration(durationSeconds) });
     if (typeof navigator.share === 'function') {
         try {
-            await navigator.share({ title: 'MyTabata 운동 완료', text });
+            await navigator.share({ title: t('share.title'), text });
         }
         catch {
             // 사용자 취소 또는 미지원 — 조용히 무시
@@ -340,7 +330,7 @@ async function shareWorkout(rounds, durationSeconds, workDuration, restDuration)
     else {
         try {
             await navigator.clipboard.writeText(text);
-            showToast('클립보드에 복사됨');
+            showToast(t('misc.copied'));
         }
         catch {
             // clipboard 미지원 환경 무시
@@ -355,43 +345,32 @@ function showSummaryCard(rounds, durationSeconds, workDuration, restDuration, st
     roundLabel.style.display = 'none';
     intervalDisplay.style.display = 'none';
     const streakBadge = streak >= 3
-        ? `<div class="summary-badge">🔥 ${streak}일 연속!</div>`
-        : '';
-    // Feature A: Pro 업그레이드 유도 배너 (FREE 사용자만)
-    const upgradeBanner = !premium.isPro()
-        ? `<span class="summary-upgrade-banner" id="summary-upgrade-link">Pro로 업그레이드하면 기록이 저장됩니다 →</span>`
+        ? `<div class="summary-badge">${t('misc.streakBadge', { n: streak })}</div>`
         : '';
     summaryCard.innerHTML = `
     <div class="summary-emoji">🎉</div>
-    <div class="summary-title">운동 완료!</div>
+    <div class="summary-title">${t('summary.title')}</div>
     ${streakBadge}
     <div class="summary-stats">
       <div class="summary-stat">
         <span class="summary-stat-value">${rounds}</span>
-        <span class="summary-stat-label">완료 라운드</span>
+        <span class="summary-stat-label">${t('summary.rounds')}</span>
       </div>
       <div class="summary-stat">
         <span class="summary-stat-value">${formatDuration(durationSeconds)}</span>
-        <span class="summary-stat-label">총 소요 시간</span>
+        <span class="summary-stat-label">${t('summary.duration')}</span>
       </div>
       <div class="summary-stat">
         <span class="summary-stat-value">${workDuration}s</span>
-        <span class="summary-stat-label">라운드당 운동</span>
+        <span class="summary-stat-label">${t('summary.perRound')}</span>
       </div>
     </div>
-    <button class="btn-share" id="btn-share-workout" aria-label="운동 결과 공유">공유하기 📤</button>
-    ${upgradeBanner}
+    <button class="btn-share" id="btn-share-workout" aria-label="${t('btn.share')}">${t('btn.share')}</button>
   `;
     summaryCard.classList.add('visible');
     // Feature B: 공유 버튼 이벤트
     const btnShare = document.getElementById('btn-share-workout');
     btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration).catch(() => { }); });
-    // Feature A: 업그레이드 배너 탭 → Pro 모달 열기 + 배너 숨기기
-    const upgradeLink = document.getElementById('summary-upgrade-link');
-    upgradeLink?.addEventListener('click', () => {
-        openPanel(proModal, upgradeLink);
-        upgradeLink.style.display = 'none';
-    });
 }
 function hideSummaryCard() {
     summaryCard.classList.remove('visible');
@@ -431,7 +410,7 @@ document.addEventListener('visibilitychange', () => {
             stopCircleAnimation();
             // Sprint 8 Feature B: 자동 일시정지 시 링 인디케이터
             setRingPaused(true);
-            btnStart.textContent = '재개';
+            btnStart.textContent = t('btn.resume');
         }
     }
     else {
@@ -447,29 +426,29 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 // ── 탭 타이틀 업데이트 ───────────────────────────────────
-const DEFAULT_TITLE = 'MyTabata — 타바타 타이머';
 function updateTabTitle(phase, timeRemaining) {
     switch (phase) {
         case 'warmup':
-            document.title = `워밍업 ${timeRemaining}s | MyTabata`;
+            document.title = t('tab.warmup', { t: timeRemaining });
             break;
         case 'work':
-            document.title = `운동! ${timeRemaining}s | MyTabata`;
+            document.title = t('tab.work', { t: timeRemaining });
             break;
         case 'rest':
-            document.title = `휴식 ${timeRemaining}s | MyTabata`;
+            document.title = t('tab.rest', { t: timeRemaining });
             break;
         case 'cooldown':
-            document.title = `쿨다운 ${timeRemaining}s | MyTabata`;
+            document.title = t('tab.cooldown', { t: timeRemaining });
             break;
         case 'countdown':
-            document.title = `준비 ${timeRemaining}s | MyTabata`;
+            document.title = t('tab.countdown', { t: timeRemaining });
             break;
         case 'complete':
-            document.title = '완료! 🎉 | MyTabata';
+            document.title = t('tab.complete');
             break;
         default:
-            document.title = DEFAULT_TITLE;
+            document.title = t('tab.default');
+            break;
     }
 }
 // ── 키보드 단축키 ────────────────────────────────────────
@@ -492,7 +471,6 @@ document.addEventListener('keydown', (e) => {
         case 'Escape':
             closePanel(settingsPanel);
             closePanel(historyPanel);
-            closePanel(proModal);
             break;
     }
 });
@@ -599,13 +577,13 @@ timer.on(event => {
         const { phase, round } = event;
         // 페이즈별 UI 색상·레이블
         const phaseMap = {
-            idle: { label: '준비', color: 'var(--color-idle)' },
-            countdown: { label: '준비', color: 'var(--color-countdown)' },
-            warmup: { label: '워밍업', color: 'var(--color-warmup)' },
-            work: { label: '운동!', color: 'var(--color-work)' },
-            rest: { label: '휴식', color: 'var(--color-rest)' },
-            cooldown: { label: '쿨다운', color: 'var(--color-warmup)' },
-            complete: { label: '완료! 🎉', color: 'var(--color-complete)' },
+            idle: { label: t('phase.idle'), color: 'var(--color-idle)' },
+            countdown: { label: t('phase.countdown'), color: 'var(--color-countdown)' },
+            warmup: { label: t('phase.warmup'), color: 'var(--color-warmup)' },
+            work: { label: t('phase.work'), color: 'var(--color-work)' },
+            rest: { label: t('phase.rest'), color: 'var(--color-rest)' },
+            cooldown: { label: t('phase.cooldown'), color: 'var(--color-warmup)' },
+            complete: { label: t('phase.complete'), color: 'var(--color-complete)' },
         };
         const { label, color } = phaseMap[phase];
         phaseLabel.textContent = label;
@@ -681,8 +659,8 @@ timer.on(event => {
             triggerHaptic([30, 30, 30]);
         // 휴식 시각적 구분 (Sprint 3 Feature B)
         setRestMode(phase === 'rest' || phase === 'cooldown');
-        // 음성 안내 (Pro)
-        if (voiceEnabled && premium.isPro()) {
+        // 음성 안내
+        if (voiceEnabled) {
             if (phase === 'work') {
                 if (round === state.config.totalRounds)
                     speech.lastRound();
@@ -698,7 +676,7 @@ timer.on(event => {
             startElapsedTimer();
         }
         // 버튼 상태
-        btnStart.textContent = phase === 'complete' ? '다시 시작' : '일시정지';
+        btnStart.textContent = phase === 'complete' ? t('btn.restart') : t('btn.pause');
     }
     if (event.type === 'TICK') {
         const { phase, timeRemaining } = state;
@@ -714,13 +692,13 @@ timer.on(event => {
         // 카운트다운 틱음
         if (phase === 'countdown') {
             audio.countdown(timeRemaining);
-            if (voiceEnabled && premium.isPro())
+            if (voiceEnabled)
                 speech.countdown(timeRemaining);
         }
     }
     if (event.type === 'COMPLETE') {
         audio.complete();
-        if (voiceEnabled && premium.isPro())
+        if (voiceEnabled)
             speech.complete();
         stopElapsedTimer();
         updateTabTitle('complete', 0);
@@ -739,7 +717,7 @@ timer.on(event => {
             ? Math.round((Date.now() - workoutStartTime.getTime()) / 1000)
             : (config.workDuration + config.restDuration) * config.totalRounds + config.countdownDuration;
         // 운동 기록 저장 먼저 (Sprint 4 Feature D: 저장 후 streak 조회해야 당일 반영)
-        if (premium.isPro() && workoutStartTime) {
+        if (workoutStartTime) {
             storage.saveWorkout({
                 date: new Date().toISOString(),
                 rounds: config.totalRounds,
@@ -750,7 +728,7 @@ timer.on(event => {
         }
         workoutStartTime = null;
         // 스트릭 조회 (기록 저장 이후) 및 요약 카드 표시
-        const streak = premium.isPro() ? storage.getStats().streak : 0;
+        const streak = storage.getStats().streak;
         showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, streak);
         // 배경 틴트 리셋 (Sprint 4 Feature C)
         setBodyTint('complete');
@@ -817,7 +795,7 @@ btnStart.addEventListener('click', () => {
         setRingPaused(false);
         const s = timer.getState();
         startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase));
-        btnStart.textContent = '일시정지';
+        btnStart.textContent = t('btn.pause');
         acquireWakeLock();
     }
 });
@@ -836,12 +814,12 @@ btnReset.addEventListener('click', () => {
     nextPhaseLabel.style.display = 'none';
     const cfg = timer.getState().config;
     timerNumber.textContent = String(cfg.workDuration);
-    phaseLabel.textContent = '준비';
+    phaseLabel.textContent = t('phase.idle');
     // BUG-03 fix: roundLabel and renderRoundDots are already set by the PHASE_CHANGE 'idle' handler
-    btnStart.textContent = '시작';
+    btnStart.textContent = t('btn.start');
     document.documentElement.style.setProperty('--phase-color', 'var(--color-idle)');
     setCircleOffset(1, 1);
-    document.title = DEFAULT_TITLE;
+    document.title = t('tab.default');
     updateSvgAriaLabel('idle', cfg.workDuration, 0, cfg.totalRounds);
 });
 // ── Sprint 8 Feature D: 패널 닫기 시 상단으로 스크롤 ────
@@ -905,12 +883,8 @@ btnClose.addEventListener('click', () => {
     closePanel(settingsPanel);
     scrollToTop();
 });
-// 기록 패널 (Pro)
+// 기록 패널
 btnHistory.addEventListener('click', () => {
-    if (!premium.isPro()) {
-        openPanel(proModal, btnHistory);
-        return;
-    }
     renderHistory();
     openPanel(historyPanel, btnHistory);
 });
@@ -927,12 +901,11 @@ btnVoice.addEventListener('click', () => {
     const nextIndex = (VOLUME_CYCLE.indexOf(current) + 1) % VOLUME_CYCLE.length;
     const next = VOLUME_CYCLE[nextIndex];
     audio.setVolume(next);
-    // 음성 안내: 볼륨이 0이 되면 끄고, 0에서 올라오면 Pro 여부에 따라 켜기
     if (next === 0) {
         voiceEnabled = false;
         speech.setEnabled(false);
     }
-    else if (premium.isPro()) {
+    else {
         voiceEnabled = true;
         speech.setEnabled(true);
     }
@@ -940,21 +913,14 @@ btnVoice.addEventListener('click', () => {
     btnVoice.classList.toggle('active', next > 0);
     btnVoice.title = VOLUME_TITLES[next];
 });
-// Pro 모달
-btnBuyPro.addEventListener('click', () => premium.openPurchasePage());
-btnClosePro.addEventListener('click', () => closePanel(proModal));
 // ── Sprint 7 Feature C: 입력 실시간 검증 이벤트 ────────────
 function attachInputValidation() {
     inputWork.addEventListener('input', () => validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }));
     inputRest.addEventListener('input', () => validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest }));
     inputRounds.addEventListener('input', () => validateRoundsInput());
 }
-// 설정 적용 (Pro: 커스텀 인터벌)
+// ── 설정 적용 ──────────────────────────────────────────────
 btnApplyConfig.addEventListener('click', () => {
-    if (!premium.isPro()) {
-        openPanel(proModal, btnApplyConfig);
-        return;
-    }
     // Sprint 7 Feature C: 적용 전 입력값 검증
     const workValid = validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork });
     const restValid = validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest });
@@ -973,7 +939,7 @@ btnApplyConfig.addEventListener('click', () => {
     timer.updateConfig(config);
     roundLabel.textContent = `0 / ${config.totalRounds}`;
     renderRoundDots(0, config.totalRounds);
-    btnStart.textContent = '시작';
+    btnStart.textContent = t('btn.start');
     // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
     updateIntervalDisplay(config.workDuration, config.restDuration);
     // 설정 저장 (Feature C + Sprint 6 Feature C)
@@ -990,35 +956,28 @@ btnApplyConfig.addEventListener('click', () => {
     closePanel(settingsPanel);
     scrollToTop();
 });
-// ── 프리셋 렌더링 (Pro) ───────────────────────────────────
+// ── 프리셋 렌더링 ───────────────────────────────────────────
 function renderPresets() {
-    const freeId = 'tabata-classic';
     presetGrid.innerHTML = PRESETS.map(p => {
-        const locked = !premium.isPro() && p.id !== freeId;
-        // Feature A: 총 소요 시간 배지
         const totalSecs = (p.config.workDuration + p.config.restDuration) * p.config.totalRounds + p.config.countdownDuration;
         const totalBadge = formatDuration(totalSecs);
         const isActive = p.id === activePresetId;
+        const name = t(`preset.${p.id}.name`);
+        const desc = t(`preset.${p.id}.desc`);
         return `
     <button class="preset-btn${isActive ? ' active' : ''}"
             data-id="${p.id}"
-            ${locked ? 'data-locked="true"' : ''}
-            title="${p.description}">
+            title="${desc}">
       <div class="preset-header">
         <span class="preset-emoji">${p.emoji}</span>
-        <span class="preset-name">${p.name}</span>
-        ${locked ? '<span class="lock-icon">🔒</span>' : ''}
+        <span class="preset-name">${name}</span>
       </div>
-      <span class="preset-description">${p.description}</span>
-      ${p.id !== 'custom' ? `<span class="preset-duration">총 ${totalBadge}</span>` : ''}
+      <span class="preset-description">${desc}</span>
+      ${p.id !== 'custom' ? `<span class="preset-duration">${t('preset.total', { t: totalBadge })}</span>` : ''}
     </button>`;
     }).join('');
     presetGrid.querySelectorAll('.preset-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (btn.dataset['locked']) {
-                openPanel(proModal, btn);
-                return;
-            }
             const preset = PRESETS.find(p => p.id === btn.dataset['id']);
             if (!preset)
                 return;
@@ -1034,7 +993,7 @@ function renderPresets() {
             inputRounds.value = String(preset.config.totalRounds);
             roundLabel.textContent = `0 / ${preset.config.totalRounds}`;
             renderRoundDots(0, preset.config.totalRounds);
-            btnStart.textContent = '시작';
+            btnStart.textContent = t('btn.start');
             // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
             updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration);
             // 설정 저장 (Feature C)
@@ -1077,14 +1036,14 @@ function renderWeeklyGoal() {
     goalRingFill.style.strokeDasharray = String(GOAL_RING_CIRCUMFERENCE);
     goalRingFill.style.strokeDashoffset = String(GOAL_RING_CIRCUMFERENCE * (1 - pct));
     goalRingFill.classList.toggle('achieved', achieved);
-    weeklyGoalCount.textContent = `이번 주 ${completed}/${goal}`;
+    weeklyGoalCount.textContent = t('weekly.count', { c: completed, g: goal });
     let message = '';
     if (achieved) {
-        message = '🎉 목표 달성!';
+        message = t('weekly.achieved');
     }
     else {
         const remaining = goal - completed;
-        message = remaining === 1 ? '한 번만 더!' : `${remaining}회 남았어요`;
+        message = remaining === 1 ? t('weekly.oneMore') : t('weekly.remaining', { n: remaining });
     }
     weeklyGoalMessage.textContent = message;
 }
@@ -1096,7 +1055,7 @@ function renderHistoryDeleteArea() {
         return;
     }
     historyDeleteArea.innerHTML = `
-    <button class="btn-history-delete" id="btn-history-delete">기록 삭제</button>
+    <button class="btn-history-delete" id="btn-history-delete">${t('history.delete')}</button>
   `;
     const btnDelete = document.getElementById('btn-history-delete');
     if (!btnDelete)
@@ -1104,10 +1063,10 @@ function renderHistoryDeleteArea() {
     btnDelete.addEventListener('click', () => {
         historyDeleteArea.innerHTML = `
       <div class="history-delete-confirm">
-        <span class="history-delete-warning">정말 삭제하시겠습니까?</span>
+        <span class="history-delete-warning">${t('history.confirmDelete')}</span>
         <div class="history-delete-actions">
-          <button class="btn-delete-confirm" id="btn-delete-confirm">확인</button>
-          <button class="btn-delete-cancel" id="btn-delete-cancel">취소</button>
+          <button class="btn-delete-confirm" id="btn-delete-confirm">${t('history.confirm')}</button>
+          <button class="btn-delete-cancel" id="btn-delete-cancel">${t('history.cancel')}</button>
         </div>
       </div>
     `;
@@ -1128,34 +1087,23 @@ function renderHistory() {
     statsWeek.textContent = String(stats.thisWeek);
     statsStreak.textContent = String(stats.streak);
     const history = storage.getHistory().slice(0, 20);
+    const locale = DATE_LOCALE[getCurrentLang()];
     historyList.innerHTML = history.length === 0
-        ? '<p class="empty-history">아직 완료한 운동이 없습니다.</p>'
+        ? `<p class="empty-history">${t('history.empty')}</p>`
         : history.map(r => {
             const date = new Date(r.date);
             const mins = Math.floor(r.durationSeconds / 60);
             const secs = r.durationSeconds % 60;
+            const interval = t('misc.intervalDisplay', { w: r.workDuration, r: r.restDuration });
             return `
           <div class="history-item">
-            <span class="history-date">${date.toLocaleDateString('ko-KR')}</span>
-            <span class="history-detail">${r.workDuration}/${r.restDuration}초 × ${r.rounds}라운드</span>
+            <span class="history-date">${date.toLocaleDateString(locale)}</span>
+            <span class="history-detail">${interval} × ${r.rounds}</span>
             <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
           </div>`;
         }).join('');
     renderHistoryDeleteArea();
     renderWeeklyGoal();
-}
-// ── Pro 배지 표시 ─────────────────────────────────────────
-function updateProUI() {
-    const isPro = premium.isPro();
-    document.querySelectorAll('.pro-badge').forEach(el => {
-        el.style.display = isPro ? 'none' : 'inline';
-    });
-    if (isPro) {
-        document.querySelectorAll('[data-locked]').forEach(el => {
-            el.removeAttribute('data-locked');
-            el.querySelector('.lock-icon')?.remove();
-        });
-    }
 }
 // ── Sprint 9 Feature A: PWA 설치 배너 ────────────────────
 const PWA_DISMISS_KEY = 'tabatago_install_dismissed';
@@ -1212,22 +1160,18 @@ btnPwaDismiss.addEventListener('click', () => {
 document.getElementById('panel-overlay')?.addEventListener('click', () => {
     closePanel(settingsPanel);
     closePanel(historyPanel);
-    closePanel(proModal);
-});
-// ── Sprint 9 Feature B: Pro 모달 "평가판으로 계속 사용" 링크 ──
-btnContinueFree.addEventListener('click', (e) => {
-    e.preventDefault();
-    proModal.classList.remove('open');
 });
 // ── 초기화 ───────────────────────────────────────────────
 function init() {
+    // i18n 초기화 (가장 먼저)
+    initI18n();
     // 초기 원형 프로그레스 설정
     timerCircle.style.strokeDasharray = String(CIRCLE_CIRCUMFERENCE);
     timerCircle.style.strokeDashoffset = String(0);
     setCircleOffset(1, 1);
     // Feature C: 저장된 설정 불러오기
     const saved = loadSettings();
-    if (saved && premium.isPro()) {
+    if (saved) {
         const warmupOn = saved.warmupEnabled === true;
         const cooldownOn = saved.cooldownEnabled === true;
         const config = {
@@ -1261,7 +1205,6 @@ function init() {
     btnVoice.title = VOLUME_TITLES[vol];
     btnVoice.classList.toggle('active', vol > 0);
     renderPresets();
-    updateProUI();
     // Sprint 7 Feature C: 입력 실시간 검증
     attachInputValidation();
     // 미니멀리스트 모드 초기화 (Sprint 5)
@@ -1280,6 +1223,23 @@ function init() {
     btnStart.addEventListener('click', dismissOnboardingTooltip, { once: true });
     // Sprint 9 Feature E: 앱 버전 표시
     appVersionLabel.textContent = APP_VERSION;
+    // Sprint 12: 언어 선택
+    selectLanguage.value = getCurrentLang();
+    selectLanguage.addEventListener('change', () => {
+        setLanguage(selectLanguage.value);
+        // 동적 UI 갱신
+        phaseLabel.textContent = t(`phase.${timer.getState().phase}`);
+        const cfg = timer.getState().config;
+        updateIntervalDisplay(cfg.workDuration, cfg.restDuration);
+        const state = timer.getState();
+        if (!state.isRunning && (state.phase === 'idle' || state.phase === 'complete')) {
+            btnStart.textContent = state.phase === 'complete' ? t('btn.restart') : t('btn.start');
+        }
+        renderPresets();
+        renderHistory();
+        document.title = t('tab.default');
+        progressRingSvg.setAttribute('aria-label', t('aria.timerRing'));
+    });
 }
 // Sprint 9 Feature D: 에러 바운더리 — init()를 try/catch로 래핑
 try {
