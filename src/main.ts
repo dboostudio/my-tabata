@@ -1311,6 +1311,7 @@ function renderPresets(): void {
     const totalBadge = formatDuration(totalSecs)
     const isActive = p.id === activePresetId
     const name = t(`preset.${p.id}.name`)
+    const tag = t(`preset.${p.id}.tag`)
     const desc = t(`preset.${p.id}.desc`)
     return `
     <button class="preset-btn${isActive ? ' active' : ''}"
@@ -1320,8 +1321,8 @@ function renderPresets(): void {
         <span class="preset-emoji">${p.emoji}</span>
         <span class="preset-name">${name}</span>
       </div>
-      <span class="preset-description">${desc}</span>
-      <span class="preset-duration">${t('preset.total', { t: totalBadge })}</span>
+      <span class="preset-spec">${p.config.workDuration}/${p.config.restDuration}s × ${p.config.totalRounds}  •  ${totalBadge}</span>
+      <span class="preset-tag">${tag}</span>
     </button>`
   }).join('')
 

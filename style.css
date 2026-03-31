@@ -310,14 +310,19 @@ input:focus-visible {
   border-radius: 8px;
 }
 .preset-name  { font-weight: 600; font-size: 0.85rem; }
-.preset-description {
-  font-size: 0.72rem;
+.preset-spec {
+  font-size: 0.75rem;
+  color: var(--phase-color);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.preset-tag {
+  font-size: 0.7rem;
   color: var(--text-muted);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  line-height: 1.3;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 /* ── 입력 그룹 ── */
 .input-group {
@@ -439,13 +444,9 @@ input:focus-visible {
   margin-top: 2px;
 }
 
-/* ── 프리셋 총 소요 시간 배지 (Feature A) ── */
+/* ── 프리셋 총 소요 시간 (legacy, unused) ── */
 .preset-duration {
-  font-size: 0.7rem;
-  color: var(--phase-color);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  margin-top: 2px;
+  display: none;
 }
 
 /* ── 완료 요약 카드 (Feature B) ── */
