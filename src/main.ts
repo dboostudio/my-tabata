@@ -1086,6 +1086,29 @@ btnStart.addEventListener('pointercancel', cancelLongPress)
 btnStart.addEventListener('pointerleave', cancelLongPress)
 btnStart.addEventListener('contextmenu', (e: MouseEvent) => { e.preventDefault() })
 
+// ── 타이머 원형 영역 터치로 pause/resume (VOC) ──────────
+circleWrapper.addEventListener('click', (e: MouseEvent) => {
+  // 내부 요소(summary card 버튼 등) 클릭 시 무시
+  if ((e.target as HTMLElement).closest('button, a')) return
+  const state = timer.getState()
+  // 운동 중이거나 일시정지 중일 때만 반응
+  if (state.phase === 'idle' || state.phase === 'complete') return
+  if (state.isRunning) {
+    timer.pause()
+    stopCircleAnimation()
+    setRingPaused(true)
+    btnStart.textContent = t('btn.resume')
+    releaseWakeLock()
+  } else {
+    timer.resume()
+    setRingPaused(false)
+    const s = timer.getState()
+    startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase))
+    btnStart.textContent = t('btn.pause')
+    acquireWakeLock()
+  }
+})
+
 btnStart.addEventListener('click', () => {
   // 롱프레스로 이미 처리된 경우 click 이벤트 무시
   if (longPressActivated) {
