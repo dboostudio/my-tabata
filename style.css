@@ -56,6 +56,7 @@ input  { font-family: inherit; }
 .light-theme .ring-bg { stroke: #d1d1d6; }
 .light-theme .btn-outline { border-color: #c0c0c5; color: var(--text); }
 .light-theme .btn-outline:hover { background: rgba(0,0,0,0.05); }
+.light-theme .btn-secondary { background: var(--surface2); color: var(--text); }
 
 /* ── Sprint 13: 포커스 아웃라인 (키보드 접근성) ── */
 button:focus-visible,

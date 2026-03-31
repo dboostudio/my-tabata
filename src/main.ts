@@ -1092,7 +1092,7 @@ circleWrapper.addEventListener('click', (e: MouseEvent) => {
   if ((e.target as HTMLElement).closest('button, a')) return
   const state = timer.getState()
   // 운동 중이거나 일시정지 중일 때만 반응
-  if (state.phase === 'idle' || state.phase === 'complete') return
+  if (state.phase === 'idle' || state.phase === 'complete' || state.phase === 'countdown') return
   if (state.isRunning) {
     timer.pause()
     stopCircleAnimation()
