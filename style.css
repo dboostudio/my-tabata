@@ -277,7 +277,7 @@ input:focus-visible {
 .preset-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 .preset-btn {
   padding: 12px;
@@ -288,6 +288,7 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  border: 2px solid transparent;
   transition: background 0.2s;
   font-size: 0.9rem;
   position: relative;
@@ -337,14 +338,15 @@ input:focus-visible {
   color: var(--text-muted);
 }
 .input-group input {
-  width: 80px;
-  padding: 8px 12px;
+  width: 100%;
+  max-width: 140px;
+  padding: 10px 12px;
   border-radius: 8px;
   background: var(--surface2);
   color: var(--text);
   border: 1px solid transparent;
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 .input-group input:focus {
   outline: none;
@@ -436,7 +438,7 @@ input:focus-visible {
   -webkit-tap-highlight-color: transparent;
 }
 .circle-wrapper.glow {
-  animation: ring-glow 0.5s ease-out;
+  animation: ring-glow 0.4s ease-out;
 }
 
 /* ── 경과 시간 레이블 (Feature A) ── */
@@ -858,7 +860,7 @@ input:focus-visible {
 
 /* ── Sprint 7 Feature D: 프리셋 활성 상태 표시 ── */
 .preset-btn.active {
-  border: 2px solid var(--phase-color);
+  border-color: var(--phase-color);
   box-shadow: 0 0 12px color-mix(in srgb, var(--phase-color) 35%, transparent);
   background: color-mix(in srgb, var(--surface2) 80%, var(--phase-color) 20%);
 }

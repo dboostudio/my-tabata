@@ -1324,6 +1324,7 @@ btnApplyConfig.addEventListener('click', () => {
   renderPresets()
   closePanel(settingsPanel)
   scrollToTop()
+  showToast(t('misc.applied'))
 })
 
 // ── 프리셋 렌더링 ───────────────────────────────────────────
