@@ -182,10 +182,16 @@ input:focus-visible {
   height: 12px;
   border-radius: 50%;
   background: var(--surface2);
-  transition: background 0.3s;
+  transition: background 0.3s, transform 0.2s;
 }
 .dot.done   { background: var(--color-complete); }
-.dot.active { background: var(--phase-color); }
+.dot.active { background: var(--phase-color); transform: scale(1.4); }
+@keyframes dot-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.6); }
+  100% { transform: scale(1.4); }
+}
+.dot.active { animation: dot-pop 0.3s ease-out; }
 
 /* ── 컨트롤 ── */
 .controls {
@@ -311,7 +317,17 @@ input:focus-visible {
   background: color-mix(in srgb, var(--phase-color) 12%, transparent);
   border-radius: 8px;
 }
-.preset-name  { font-weight: 600; font-size: 0.85rem; }
+.preset-name  { font-weight: 600; font-size: 0.85rem; flex: 1; }
+.preset-level {
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.preset-level-1 { color: #51CF66; }
+.preset-level-2 { color: #4DABF7; }
+.preset-level-3 { color: #FFC107; }
+.preset-level-4 { color: #FF4D4D; }
 .preset-spec {
   font-size: 0.75rem;
   color: var(--phase-color);

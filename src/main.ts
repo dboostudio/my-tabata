@@ -181,7 +181,9 @@ const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 54  // r=54
 
 // ── 인터벌 설정 표시 (Sprint 4 Feature A) ─────────────────
 function updateIntervalDisplay(workDuration: number, restDuration: number): void {
-  intervalDisplay.textContent = t('misc.intervalDisplay', { w: workDuration, r: restDuration })
+  const presetName = activePresetId ? t(`preset.${activePresetId}.name`) : ''
+  const interval = t('misc.intervalDisplay', { w: workDuration, r: restDuration })
+  intervalDisplay.textContent = presetName ? `${presetName} · ${interval}` : interval
 }
 
 // ── Sprint 7 Feature C: 입력 검증 피드백 ─────────────────
@@ -1344,6 +1346,7 @@ function renderPresets(): void {
       <div class="preset-header">
         <span class="preset-emoji">${p.emoji}</span>
         <span class="preset-name">${name}</span>
+        <span class="preset-level preset-level-${p.difficulty}">${'●'.repeat(p.difficulty)}${'○'.repeat(4 - p.difficulty)}</span>
       </div>
       <span class="preset-spec">${p.config.workDuration}/${p.config.restDuration}s × ${p.config.totalRounds}  •  ${totalBadge}</span>
       <span class="preset-tag">${tag}</span>
