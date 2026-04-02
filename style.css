@@ -1323,6 +1323,67 @@ input:focus-visible {
   color: #FFC107 !important;
 }
 
+/* ── Sprint 29: 설정 패널 접기/펼치기 ── */
+.section-collapsible {
+  border-radius: 12px;
+  background: var(--surface2);
+  padding: 0;
+}
+.section-collapsible summary {
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.section-collapsible summary::-webkit-details-marker { display: none; }
+.section-collapsible summary::after {
+  content: '▸';
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+}
+.section-collapsible[open] summary::after {
+  transform: rotate(90deg);
+}
+.section-collapsible summary h3 {
+  margin: 0;
+}
+.section-collapsible > :not(summary) {
+  padding: 0 16px 16px;
+}
+
+/* ── Sprint 29: 일시정지 오버레이 ── */
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  animation: pause-fade-in 0.2s ease;
+}
+@keyframes pause-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.pause-icon {
+  font-size: 2.5rem;
+}
+.pause-info {
+  font-size: 0.85rem;
+  color: #fff;
+  text-align: center;
+  line-height: 1.4;
+}
+.light-theme .pause-overlay {
+  background: rgba(0, 0, 0, 0.35);
+}
+
 /* ── Sprint 17: 버튼 펄스 피드백 ── */
 @keyframes btn-pulse {
   0%   { transform: scale(1); }

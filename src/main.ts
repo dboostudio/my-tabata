@@ -52,6 +52,8 @@ const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const estimatedTimeEl   = $('#estimated-time')
+const pauseOverlay      = $('#pause-overlay')
+const pauseInfo         = $('#pause-info')
 const welcomeModal      = $('#welcome-modal')
 const customPresetList  = $('#custom-preset-list')
 const toggleWarmup      = $<HTMLInputElement>('#toggle-warmup')
@@ -643,6 +645,7 @@ document.addEventListener('visibilitychange', () => {
       stopCircleAnimation()
       // Sprint 8 Feature B: 자동 일시정지 시 링 인디케이터
       setRingPaused(true)
+    showPauseOverlay(true)
       btnStart.textContent = t('btn.resume')
     }
   } else {
@@ -818,6 +821,17 @@ function setRingPaused(paused: boolean): void {
   timerCircle.classList.toggle('ring-paused', paused)
 }
 
+function showPauseOverlay(show: boolean): void {
+  if (show) {
+    const state = timer.getState()
+    const phaseName = t(`phase.${state.phase}`)
+    pauseInfo.textContent = `${phaseName} · ${state.currentRound}/${state.config.totalRounds} · ${state.timeRemaining}s`
+    pauseOverlay.style.display = 'flex'
+  } else {
+    pauseOverlay.style.display = 'none'
+  }
+}
+
 // ── Sprint 8 Feature E: CSS 컨페티 버스트 ───────────────
 
 function triggerConfetti(): void {
@@ -933,6 +947,7 @@ timer.on(event => {
 
     // Sprint 8 Feature B: 새 페이즈 시작 시 ring-paused 해제 (running)
     setRingPaused(false)
+    showPauseOverlay(false)
 
     // 페이즈 전환 시 링 펄스 애니메이션 (idle 제외)
     if (phase !== 'idle') {
@@ -1114,11 +1129,13 @@ circleWrapper.addEventListener('click', (e: MouseEvent) => {
     timer.pause()
     stopCircleAnimation()
     setRingPaused(true)
+    showPauseOverlay(true)
     btnStart.textContent = t('btn.resume')
     releaseWakeLock()
   } else {
     timer.resume()
     setRingPaused(false)
+    showPauseOverlay(false)
     const s = timer.getState()
     startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase))
     btnStart.textContent = t('btn.pause')
@@ -1150,12 +1167,14 @@ btnStart.addEventListener('click', () => {
     stopCircleAnimation()
     // Sprint 8 Feature B: 일시정지 시 링 점선 인디케이터
     setRingPaused(true)
+    showPauseOverlay(true)
     btnStart.textContent = t('btn.resume')
     releaseWakeLock()
   } else {
     timer.resume()
     // Sprint 8 Feature B: 재개 시 링 인디케이터 해제
     setRingPaused(false)
+    showPauseOverlay(false)
     const s = timer.getState()
     startCircleAnimation(s.timeRemaining, getPhaseDuration(s.config, s.phase))
     btnStart.textContent = t('btn.pause')
@@ -1172,6 +1191,7 @@ btnReset.addEventListener('click', () => {
   releaseWakeLock()
   // Sprint 8 Feature B: 리셋 시 일시정지 링 인디케이터 해제
   setRingPaused(false)
+    showPauseOverlay(false)
   setRestMode(false)
   setBodyTint('idle')
   resetOverallProgress()
@@ -1293,6 +1313,7 @@ window.addEventListener('popstate', () => {
       timer.pause()
       stopCircleAnimation()
       setRingPaused(true)
+    showPauseOverlay(true)
       btnStart.textContent = t('btn.resume')
       releaseWakeLock()
     }
@@ -1325,7 +1346,7 @@ const VOLUME_ICONS: Record<VolumeLevel, string>  = {
   1: `<svg ${SVG_ATTR}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`,
   2: `<svg ${SVG_ATTR}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
 }
-const VOLUME_TITLES: Record<VolumeLevel, string> = { 0: '소리 꺼짐', 1: '소리 작게', 2: '소리 크게' }
+const VOLUME_TITLE_KEYS: Record<VolumeLevel, string> = { 0: 'volume.off', 1: 'volume.low', 2: 'volume.high' }
 const VOLUME_CYCLE: VolumeLevel[] = [2, 1, 0]  // 클릭할 때마다 high→low→off→high
 
 btnVoice.addEventListener('click', () => {
@@ -1344,7 +1365,7 @@ btnVoice.addEventListener('click', () => {
 
   btnVoice.innerHTML = VOLUME_ICONS[next]
   btnVoice.classList.toggle('active', next > 0)
-  btnVoice.title = VOLUME_TITLES[next]
+  btnVoice.title = t(VOLUME_TITLE_KEYS[next])
   // 시각적 펄스 피드백
   btnVoice.classList.remove('btn-pulse')
   void (btnVoice as HTMLElement & { offsetWidth: number }).offsetWidth
@@ -1826,7 +1847,7 @@ function init(): void {
   // 초기 볼륨 버튼 상태
   const vol = audio.getVolume()
   btnVoice.innerHTML = VOLUME_ICONS[vol]
-  btnVoice.title = VOLUME_TITLES[vol]
+  btnVoice.title = t(VOLUME_TITLE_KEYS[vol])
   btnVoice.classList.toggle('active', vol > 0)
 
   renderPresets()

@@ -135,6 +135,10 @@
       <div id="elapsed-label" class="elapsed-label" style="display:none"></div>
       <div id="next-phase-label" class="next-phase-label" style="display:none"></div>
       <div id="summary-card" class="summary-card"></div>
+      <div id="pause-overlay" class="pause-overlay" style="display:none">
+        <span class="pause-icon">⏸</span>
+        <span id="pause-info" class="pause-info"></span>
+      </div>
     </div>
   </div>
 
@@ -171,8 +175,8 @@
     </section>
 
     <!-- 커스텀 설정 -->
-    <section class="section">
-      <h3 data-i18n="settings.custom">커스텀 인터벌</h3>
+    <details class="section section-collapsible">
+      <summary><h3 data-i18n="settings.custom">커스텀 인터벌</h3></summary>
       <div class="input-group">
         <div class="input-row">
           <label for="input-work" data-i18n="input.workTime">운동 시간 (초)</label>
@@ -193,11 +197,11 @@
       <div id="estimated-time" class="estimated-time"></div>
       <button id="btn-apply-config" class="btn-outline" data-i18n="btn.apply" style="width:100%">적용</button>
       <div id="custom-preset-list" class="custom-preset-list"></div>
-    </section>
+    </details>
 
     <!-- 워밍업 / 쿨다운 토글 (Sprint 6 Feature C) -->
-    <section class="section">
-      <h3 data-i18n="settings.warmupCooldown">워밍업 / 쿨다운</h3>
+    <details class="section section-collapsible">
+      <summary><h3 data-i18n="settings.warmupCooldown">워밍업 / 쿨다운</h3></summary>
       <label class="toggle-row">
         <span class="toggle-label" data-i18n="settings.warmupLabel">워밍업 (60초)</span>
         <span class="toggle-desc" data-i18n="settings.warmupDesc">운동 전 준비 단계</span>
@@ -210,11 +214,11 @@
         <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" data-i18n-aria="aria.cooldown" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
-    </section>
+    </details>
 
     <!-- 미니멀리스트 모드 토글 -->
-    <section class="section">
-      <h3 data-i18n="settings.display">디스플레이</h3>
+    <details class="section section-collapsible">
+      <summary><h3 data-i18n="settings.display">디스플레이</h3></summary>
       <label class="toggle-row">
         <span class="toggle-label" data-i18n="settings.minimalist">미니멀 모드</span>
         <span class="toggle-desc" data-i18n="settings.minimalistDesc">숫자와 링만 표시</span>
@@ -227,7 +231,7 @@
         <input id="toggle-theme" type="checkbox" class="toggle-checkbox" aria-label="라이트 모드 토글" data-i18n-aria="aria.lightMode" />
         <span class="toggle-switch" aria-hidden="true"></span>
       </label>
-    </section>
+    </details>
 
     <!-- 언어 선택 (Sprint 12) -->
     <section class="section">
