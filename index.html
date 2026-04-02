@@ -179,6 +179,7 @@
     <!-- 커스텀 설정 -->
     <details class="section section-collapsible">
       <summary><h3 data-i18n="settings.custom">커스텀 인터벌</h3><span id="summary-custom" class="summary-hint"></span></summary>
+      <div class="collapsible-content">
       <div class="input-group">
         <div class="stepper-row">
           <label data-i18n="input.workTime">운동 시간 (초)</label>
@@ -211,40 +212,45 @@
       <div id="estimated-time" class="estimated-time"></div>
       <button id="btn-apply-config" class="btn-outline" data-i18n="btn.apply" style="width:100%">적용</button>
       <div id="custom-preset-list" class="custom-preset-list"></div>
+      </div>
     </details>
 
     <!-- 워밍업 / 쿨다운 토글 (Sprint 6 Feature C) -->
     <details class="section section-collapsible">
       <summary><h3 data-i18n="settings.warmupCooldown">워밍업 / 쿨다운</h3><span id="summary-warmup" class="summary-hint"></span></summary>
-      <label class="toggle-row">
-        <span class="toggle-label" data-i18n="settings.warmupLabel">워밍업 (60초)</span>
-        <span class="toggle-desc" data-i18n="settings.warmupDesc">운동 전 준비 단계</span>
-        <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" data-i18n-aria="aria.warmup" />
-        <span class="toggle-switch" aria-hidden="true"></span>
-      </label>
-      <label class="toggle-row">
-        <span class="toggle-label" data-i18n="settings.cooldownLabel">쿨다운 (60초)</span>
-        <span class="toggle-desc" data-i18n="settings.cooldownDesc">운동 후 마무리 단계</span>
-        <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" data-i18n-aria="aria.cooldown" />
-        <span class="toggle-switch" aria-hidden="true"></span>
-      </label>
+      <div class="collapsible-content">
+        <label class="toggle-row">
+          <span class="toggle-label" data-i18n="settings.warmupLabel">워밍업 (60초)</span>
+          <span class="toggle-desc" data-i18n="settings.warmupDesc">운동 전 준비 단계</span>
+          <input id="toggle-warmup" type="checkbox" class="toggle-checkbox" aria-label="워밍업 토글" data-i18n-aria="aria.warmup" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+        </label>
+        <label class="toggle-row">
+          <span class="toggle-label" data-i18n="settings.cooldownLabel">쿨다운 (60초)</span>
+          <span class="toggle-desc" data-i18n="settings.cooldownDesc">운동 후 마무리 단계</span>
+          <input id="toggle-cooldown" type="checkbox" class="toggle-checkbox" aria-label="쿨다운 토글" data-i18n-aria="aria.cooldown" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+        </label>
+      </div>
     </details>
 
     <!-- 미니멀리스트 모드 토글 -->
     <details class="section section-collapsible">
       <summary><h3 data-i18n="settings.display">디스플레이</h3><span id="summary-display" class="summary-hint"></span></summary>
-      <label class="toggle-row">
-        <span class="toggle-label" data-i18n="settings.minimalist">미니멀 모드</span>
-        <span class="toggle-desc" data-i18n="settings.minimalistDesc">숫자와 링만 표시</span>
-        <input id="toggle-minimalist" type="checkbox" class="toggle-checkbox" aria-label="미니멀 모드 토글" data-i18n-aria="aria.minimalist" />
-        <span class="toggle-switch" aria-hidden="true"></span>
-      </label>
-      <label class="toggle-row">
-        <span class="toggle-label" data-i18n="settings.lightTheme">라이트 모드</span>
-        <span class="toggle-desc" data-i18n="settings.lightThemeDesc">밝은 배경 테마</span>
-        <input id="toggle-theme" type="checkbox" class="toggle-checkbox" aria-label="라이트 모드 토글" data-i18n-aria="aria.lightMode" />
-        <span class="toggle-switch" aria-hidden="true"></span>
-      </label>
+      <div class="collapsible-content">
+        <label class="toggle-row">
+          <span class="toggle-label" data-i18n="settings.minimalist">미니멀 모드</span>
+          <span class="toggle-desc" data-i18n="settings.minimalistDesc">숫자와 링만 표시</span>
+          <input id="toggle-minimalist" type="checkbox" class="toggle-checkbox" aria-label="미니멀 모드 토글" data-i18n-aria="aria.minimalist" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+        </label>
+        <label class="toggle-row">
+          <span class="toggle-label" data-i18n="settings.lightTheme">라이트 모드</span>
+          <span class="toggle-desc" data-i18n="settings.lightThemeDesc">밝은 배경 테마</span>
+          <input id="toggle-theme" type="checkbox" class="toggle-checkbox" aria-label="라이트 모드 토글" data-i18n-aria="aria.lightMode" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+        </label>
+      </div>
     </details>
 
     <!-- 언어 선택 (Sprint 12) -->

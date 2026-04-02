@@ -1446,19 +1446,19 @@ input:focus-visible {
 .section-collapsible[open] .summary-hint {
   display: none;
 }
-.section-collapsible > :not(summary) {
+.collapsible-content {
   padding: 12px 24px 24px;
   border-top: 1px solid rgba(128,128,128,0.15);
 }
 
 /* 아코디언 내부 항목 구분 */
-.section-collapsible .stepper-row,
-.section-collapsible .toggle-row {
+.collapsible-content .stepper-row,
+.collapsible-content .toggle-row {
   padding: 14px 0;
   border-bottom: 1px solid rgba(128,128,128,0.12);
 }
-.section-collapsible .stepper-row:last-of-type,
-.section-collapsible .toggle-row:last-of-type {
+.collapsible-content .stepper-row:last-of-type,
+.collapsible-content .toggle-row:last-of-type {
   border-bottom: none;
   padding-bottom: 0;
 }
