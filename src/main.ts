@@ -841,8 +841,21 @@ function showPauseOverlay(show: boolean): void {
     const phaseName = t(`phase.${state.phase}`)
     pauseInfo.textContent = `${phaseName} · ${state.currentRound}/${state.config.totalRounds} · ${state.timeRemaining}s`
     pauseOverlay.style.display = 'flex'
+    // 기존 타이머 텍스트 숨기기 (겹침 방지)
+    phaseLabel.style.opacity = '0'
+    timerNumber.style.opacity = '0'
+    roundLabel.style.opacity = '0'
+    intervalDisplay.style.opacity = '0'
+    elapsedLabel.style.opacity = '0'
+    nextPhaseLabel.style.opacity = '0'
   } else {
     pauseOverlay.style.display = 'none'
+    phaseLabel.style.opacity = ''
+    timerNumber.style.opacity = ''
+    roundLabel.style.opacity = ''
+    intervalDisplay.style.opacity = ''
+    elapsedLabel.style.opacity = ''
+    nextPhaseLabel.style.opacity = ''
   }
 }
 
