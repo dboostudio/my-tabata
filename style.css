@@ -1399,20 +1399,26 @@ input:focus-visible {
   border-radius: 12px;
   background: var(--surface2);
   padding: 0;
+  overflow: hidden;
 }
 .section-collapsible summary {
-  padding: 14px 16px;
+  padding: 16px;
   cursor: pointer;
   list-style: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 .section-collapsible summary::-webkit-details-marker { display: none; }
 .section-collapsible summary::after {
-  content: '▸';
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  content: '';
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: var(--text-muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
   transition: transform 0.2s;
 }
 .section-collapsible[open] summary::after {
@@ -1420,9 +1426,23 @@ input:focus-visible {
 }
 .section-collapsible summary h3 {
   margin: 0;
+  flex: 1;
 }
 .section-collapsible > :not(summary) {
   padding: 0 16px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  border-top: 1px solid rgba(128,128,128,0.15);
+}
+
+/* 아코디언 내부 항목 구분 */
+.section-collapsible .stepper-row,
+.section-collapsible .toggle-row {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(128,128,128,0.1);
+}
+.section-collapsible .stepper-row:last-of-type,
+.section-collapsible .toggle-row:last-of-type {
+  border-bottom: none;
 }
 
 /* ── Sprint 29: 일시정지 오버레이 ── */
