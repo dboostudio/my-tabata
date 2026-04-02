@@ -547,7 +547,10 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
         <span class="summary-stat-label">${t('summary.perRound')}</span>
       </div>
     </div>
-    <button class="btn-share" id="btn-share-workout" aria-label="${t('btn.share')}">${t('btn.share')}</button>
+    <div class="summary-actions">
+      <button class="btn-share" id="btn-share-workout" aria-label="${t('btn.share')}">${t('btn.share')}</button>
+      <button class="btn-repeat" id="btn-repeat-workout">${t('btn.repeat')}</button>
+    </div>
     ${getNextPresetSuggestion()}
   `
   summaryCard.classList.add('visible')
@@ -555,6 +558,17 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
   // Feature B: 공유 버튼 이벤트
   const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
   btnShare?.addEventListener('click', () => { shareWorkout(rounds, durationSeconds, workDuration, restDuration, streak).catch(() => {}) })
+
+  // "한 번 더" — 같은 설정으로 즉시 재시작
+  const btnRepeat = document.getElementById('btn-repeat-workout') as HTMLButtonElement | null
+  btnRepeat?.addEventListener('click', () => {
+    hideSummaryCard()
+    timer.reset()
+    timer.start()
+    acquireWakeLock()
+    audio.ensureContext()
+    analytics.workoutStart(activePresetId ?? 'manual', timer.getState().config.totalRounds)
+  })
 
   // 추천 프리셋 클릭
   const btnSuggestion = document.getElementById('btn-next-preset') as HTMLButtonElement | null

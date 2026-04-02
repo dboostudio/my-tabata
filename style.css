@@ -778,9 +778,9 @@ input:focus-visible {
 .minimalist #interval-display,
 .minimalist #phase-label,
 .minimalist #round-label,
-.minimalist #elapsed-label {
-  opacity: 0;
-  pointer-events: none;
+.minimalist #elapsed-label,
+.minimalist .seo-content {
+  display: none;
   transition: opacity 0.3s;
 }
 
@@ -795,20 +795,31 @@ input:focus-visible {
   transition: opacity 0.3s;
 }
 
-/* ── Sprint 6: 공유 버튼 (Feature B) ── */
-.btn-share {
-  margin-top: 8px;
+/* ── 완료 카드 버튼 ── */
+.summary-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+.btn-share, .btn-repeat {
   padding: 8px 20px;
   border-radius: 50px;
-  border: 1px solid var(--phase-color);
-  color: var(--phase-color);
   font-size: 0.85rem;
   font-weight: 600;
-  transition: background 0.2s, opacity 0.2s;
+  transition: background 0.2s;
 }
-.btn-share:hover {
-  background: color-mix(in srgb, var(--phase-color) 15%, transparent);
+.btn-share {
+  border: 1px solid var(--phase-color);
+  color: var(--phase-color);
 }
+.btn-share:hover { background: color-mix(in srgb, var(--phase-color) 15%, transparent); }
+.btn-repeat {
+  background: var(--phase-color);
+  color: #fff;
+  border: none;
+}
+.btn-repeat:hover { opacity: 0.85; }
 
 /* ── Sprint 6: 토스트 알림 (Feature B) ── */
 .toast {
