@@ -52,6 +52,9 @@ const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const estimatedTimeEl   = $('#estimated-time')
+const summaryCustom     = $('#summary-custom')
+const summaryWarmup     = $('#summary-warmup')
+const summaryDisplay    = $('#summary-display')
 const pauseOverlay      = $('#pause-overlay')
 const btnSkipRest       = $<HTMLButtonElement>('#btn-skip-rest')
 const pauseInfo         = $('#pause-info')
@@ -1406,8 +1409,29 @@ function updateEstimatedTime(): void {
   const w = Number(inputWork.value) || 0
   const r = Number(inputRest.value) || 0
   const n = Number(inputRounds.value) || 0
-  const total = (w + r) * n + 3 // +3 for countdown
+  const total = (w + r) * n + 3
   estimatedTimeEl.textContent = t('misc.estimatedTime', { t: formatDuration(total) })
+  // 아코디언 서브텍스트 업데이트
+  summaryCustom.textContent = `${w}/${r}s × ${n}`
+}
+
+function updateAccordionHints(): void {
+  // 커스텀 인터벌
+  const w = Number(inputWork.value) || 0
+  const r = Number(inputRest.value) || 0
+  const n = Number(inputRounds.value) || 0
+  summaryCustom.textContent = `${w}/${r}s × ${n}`
+  // 워밍업/쿨다운
+  const warmup = toggleWarmup.checked
+  const cooldown = toggleCooldown.checked
+  if (warmup && cooldown) summaryWarmup.textContent = t('accordion.bothOn')
+  else if (warmup) summaryWarmup.textContent = t('accordion.warmupOn')
+  else if (cooldown) summaryWarmup.textContent = t('accordion.cooldownOn')
+  else summaryWarmup.textContent = t('accordion.allOff')
+  // 디스플레이
+  const theme = toggleTheme.checked ? t('accordion.light') : t('accordion.dark')
+  const minimal = toggleMinimalist.checked ? ' · ' + t('settings.minimalist') : ''
+  summaryDisplay.textContent = theme + minimal
 }
 
 function attachInputValidation(): void {
@@ -1468,6 +1492,7 @@ btnApplyConfig.addEventListener('click', () => {
   closePanel(settingsPanel)
   scrollToTop()
   showToast(t('misc.applied'))
+  updateAccordionHints()
 })
 
 // ── 프리셋 렌더링 ───────────────────────────────────────────
@@ -1913,6 +1938,7 @@ function init(): void {
   // Sprint 7 Feature C: 입력 실시간 검증
   attachInputValidation()
   updateEstimatedTime()
+  updateAccordionHints()
 
   // 미니멀리스트 모드 초기화 (Sprint 5)
   applyMinimalistMode(loadMinimalistMode())
@@ -1920,6 +1946,7 @@ function init(): void {
     const enabled = toggleMinimalist.checked
     applyMinimalistMode(enabled)
     saveMinimalistMode(enabled)
+    updateAccordionHints()
   })
 
   // 라이트/다크 테마 (Sprint 14)
@@ -1929,6 +1956,7 @@ function init(): void {
     applyTheme(light)
     saveLightTheme(light)
     analytics.themeChange(light ? 'light' : 'dark')
+    updateAccordionHints()
   })
 
   // 스와이프로 패널 닫기 (Sprint 3 Feature E)

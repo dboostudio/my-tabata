@@ -1426,23 +1426,34 @@ input:focus-visible {
 }
 .section-collapsible summary h3 {
   margin: 0;
-  flex: 1;
+}
+.summary-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+.section-collapsible[open] .summary-hint {
+  display: none;
 }
 .section-collapsible > :not(summary) {
-  padding: 0 16px 16px;
-  border-top: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  padding: 8px 16px 20px;
   border-top: 1px solid rgba(128,128,128,0.15);
 }
 
 /* 아코디언 내부 항목 구분 */
 .section-collapsible .stepper-row,
 .section-collapsible .toggle-row {
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(128,128,128,0.1);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(128,128,128,0.12);
 }
 .section-collapsible .stepper-row:last-of-type,
 .section-collapsible .toggle-row:last-of-type {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 /* ── Sprint 29: 일시정지 오버레이 ── */
