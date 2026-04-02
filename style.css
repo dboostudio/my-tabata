@@ -1397,9 +1397,42 @@ input:focus-visible {
   margin-right: 4px;
 }
 
+/* ── 히스토리 섹션 구분 ── */
+.history-section {
+  margin-bottom: 16px;
+}
+.section-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.calendar-detail {
+  font-size: 0.82rem;
+  color: var(--text);
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  display: none;
+}
+.calendar-detail .cal-detail-date {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.calendar-detail .cal-detail-item {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  padding: 2px 0;
+}
+
 /* ── Google Sheets 연동 ── */
 .google-sync {
-  margin-bottom: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(128,128,128,0.12);
   text-align: center;
 }
 .btn-google {
@@ -1407,8 +1440,8 @@ input:focus-visible {
   border-radius: 8px;
   border: 1px solid rgba(128,128,128,0.2);
   background: var(--surface);
-  color: var(--text);
-  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   width: 100%;

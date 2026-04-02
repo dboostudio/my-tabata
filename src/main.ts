@@ -49,6 +49,8 @@ const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
 const calendarWidget    = $('#calendar-widget')
+const calendarDetail    = $('#calendar-detail')
+const statsSection      = $('#stats-section')
 const googleSyncEl      = $('#google-sync')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
@@ -1720,7 +1722,7 @@ async function renderCalendar(): Promise<void> {
     const hasWorkout = dates.has(key)
     const isToday = key === todayKey
     const cls = `cal-day${hasWorkout ? ' cal-active' : ''}${isToday ? ' cal-today' : ''}`
-    cells += `<div class="${cls}">${d}</div>`
+    cells += `<div class="${cls}" data-date="${key}">${d}</div>`
   }
 
   calendarWidget.innerHTML = `
@@ -1742,6 +1744,50 @@ async function renderCalendar(): Promise<void> {
     if (calendarMonth > 11) { calendarMonth = 0; calendarYear++ }
     renderCalendar()
   })
+
+  // 날짜 탭 → 상세 표시
+  calendarWidget.querySelectorAll<HTMLElement>('.cal-day.cal-active').forEach(cell => {
+    cell.style.cursor = 'pointer'
+    cell.addEventListener('click', () => {
+      const dateKey = cell.dataset['date']!
+      showCalendarDetail(dateKey)
+    })
+  })
+}
+
+async function showCalendarDetail(dateKey: string): Promise<void> {
+  const locale = DATE_LOCALE[getCurrentLang()]
+  const dateStr = new Date(dateKey + 'T00:00:00').toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' })
+
+  // 데이터 소스: Sheets 또는 localStorage
+  let dayWorkouts: { presetName: string; duration: string; rounds: number }[] = []
+
+  if (isSignedIn()) {
+    const rows = await fetchWorkouts()
+    dayWorkouts = rows.filter(r => r.date.slice(0, 10) === dateKey).map(r => ({
+      presetName: r.presetName,
+      duration: formatDuration(r.durationSeconds),
+      rounds: r.rounds,
+    }))
+  } else {
+    const history = storage.getHistory()
+    dayWorkouts = history.filter(r => new Date(r.date).toISOString().slice(0, 10) === dateKey).map(r => ({
+      presetName: r.presetId ? t(`preset.${r.presetId}.name`) : t('misc.intervalDisplay', { w: r.workDuration, r: r.restDuration }),
+      duration: formatDuration(r.durationSeconds),
+      rounds: r.rounds,
+    }))
+  }
+
+  if (dayWorkouts.length === 0) {
+    calendarDetail.style.display = 'none'
+    return
+  }
+
+  calendarDetail.innerHTML = `
+    <div class="cal-detail-date">${dateStr}</div>
+    ${dayWorkouts.map(w => `<div class="cal-detail-item">${w.presetName} · ${w.rounds}R · ${w.duration}</div>`).join('')}
+  `
+  calendarDetail.style.display = 'block'
 }
 
 // ── 기록 렌더링 ───────────────────────────────────────────
@@ -1852,12 +1898,18 @@ function animateCount(el: HTMLElement, target: number, duration = 400): void {
 
 function renderHistory(): void {
   const stats = storage.getStats()
-  animateCount(statsTotal, stats.total)
-  animateCount(statsWeek, stats.thisWeek)
-  animateCount(statsStreak, stats.streak)
-  animateCount(statsTotalMin, stats.totalMinutes)
-  animateCount(statsAvgMin, stats.avgMinutes)
-  animateCount(statsBestStreak, stats.bestStreak)
+  // 데이터 없으면 stat 숨김
+  if (stats.total === 0) {
+    statsSection.style.display = 'none'
+  } else {
+    statsSection.style.display = ''
+    animateCount(statsTotal, stats.total)
+    animateCount(statsWeek, stats.thisWeek)
+    animateCount(statsStreak, stats.streak)
+    animateCount(statsTotalMin, stats.totalMinutes)
+    animateCount(statsAvgMin, stats.avgMinutes)
+    animateCount(statsBestStreak, stats.bestStreak)
+  }
   historyShowCount = HISTORY_PAGE_SIZE
   renderHistoryItems()
   renderCalendar()
