@@ -100,6 +100,20 @@ export class TabataTimer {
     this._enterPhase('work', 1)
   }
 
+  skipRest(): void {
+    if (this.state.phase !== 'rest') return
+    this._clearInterval()
+    const round = this.state.currentRound
+    const { totalRounds, cooldownDuration } = this.state.config
+    if (round < totalRounds) {
+      this._enterPhase('work', round + 1)
+    } else if (cooldownDuration > 0) {
+      this._enterPhase('cooldown', totalRounds)
+    } else {
+      this._complete()
+    }
+  }
+
   reset(): void {
     this._clearInterval()
     this.state = {

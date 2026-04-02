@@ -528,7 +528,7 @@ input:focus-visible {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 5px;
   background: var(--surface2);
   z-index: 150;
 }
@@ -1321,6 +1321,23 @@ input:focus-visible {
 .countdown-warn {
   animation: countdown-warn-pulse 0.5s ease;
   color: #FFC107 !important;
+}
+
+/* ── Sprint 30: 휴식 스킵 버튼 ── */
+.btn-skip-rest {
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: transparent;
+  border: 1px solid var(--color-rest);
+  color: var(--color-rest);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+.btn-skip-rest:hover {
+  background: color-mix(in srgb, var(--color-rest) 15%, transparent);
 }
 
 /* ── Sprint 29: 설정 패널 접기/펼치기 ── */

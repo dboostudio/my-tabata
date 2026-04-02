@@ -53,6 +53,7 @@ const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
 const estimatedTimeEl   = $('#estimated-time')
 const pauseOverlay      = $('#pause-overlay')
+const btnSkipRest       = $<HTMLButtonElement>('#btn-skip-rest')
 const pauseInfo         = $('#pause-info')
 const welcomeModal      = $('#welcome-modal')
 const customPresetList  = $('#custom-preset-list')
@@ -548,6 +549,10 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
         <span class="summary-stat-value">${workDuration}s</span>
         <span class="summary-stat-label">${t('summary.perRound')}</span>
       </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">~${Math.round(durationSeconds / 60 * 8)}</span>
+        <span class="summary-stat-label">${t('summary.calories')}</span>
+      </div>
     </div>
     <div class="summary-actions">
       <button class="btn-share" id="btn-share-workout" aria-label="${t('btn.share')}">${t('btn.share')}</button>
@@ -971,6 +976,14 @@ timer.on(event => {
     // 휴식 시각적 구분 (Sprint 3 Feature B)
     setRestMode(phase === 'rest' || phase === 'cooldown')
 
+    // 휴식 스킵 버튼 (Sprint 30)
+    if (phase === 'rest') {
+      btnSkipRest.textContent = t('btn.skipRest')
+      btnSkipRest.style.display = 'block'
+    } else {
+      btnSkipRest.style.display = 'none'
+    }
+
     // 음성 안내
     if (voiceEnabled) {
       if (phase === 'work') {
@@ -1180,6 +1193,11 @@ btnStart.addEventListener('click', () => {
     btnStart.textContent = t('btn.pause')
     acquireWakeLock()
   }
+})
+
+btnSkipRest.addEventListener('click', () => {
+  timer.skipRest()
+  triggerHaptic(50)
 })
 
 btnReset.addEventListener('click', () => {
