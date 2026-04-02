@@ -39,6 +39,10 @@ export class SpeechManager {
     this._speak(t('speech.lastRound'))
   }
 
+  halfway(): void {
+    this._speak(t('speech.halfway'))
+  }
+
   countdown(remaining: number): void {
     if (remaining <= 3 && remaining > 0) {
       this._speak(String(remaining))

@@ -87,6 +87,7 @@ interface SavedSettings {
   totalRounds: number
   warmupEnabled?: boolean
   cooldownEnabled?: boolean
+  presetId?: string
 }
 
 function saveSettings(cfg: SavedSettings): void {
@@ -438,10 +439,11 @@ function generateShareCard(rounds: number, durationSeconds: number, workDuration
   ctx.fillText('🎉', cx, cy + 12)
 
   // Stats row
+  const kcal = Math.round(durationSeconds / 60 * 8)
   const stats = [
     { val: String(rounds), label: t('summary.rounds') },
     { val: formatDuration(durationSeconds), label: t('summary.duration') },
-    { val: `${workDuration}s`, label: t('summary.perRound') },
+    { val: `~${kcal}`, label: t('summary.calories') },
   ]
   stats.forEach((s, i) => {
     const sx = 100 + i * 200
@@ -996,7 +998,10 @@ timer.on(event => {
     // 반환점 알림 (전체 라운드의 절반)
     if (phase === 'work' && state.config.totalRounds >= 4) {
       const halfRound = Math.ceil(state.config.totalRounds / 2) + 1
-      if (round === halfRound) showToast(t('misc.halfway'))
+      if (round === halfRound) {
+        showToast(t('misc.halfway'))
+        if (voiceEnabled) speech.halfway()
+      }
     }
 
     // 운동 시작 시간 기록 + 경과 타이머 시작 (워밍업 있으면 워밍업 시작 시 기록)
@@ -1440,6 +1445,7 @@ btnApplyConfig.addEventListener('click', () => {
     totalRounds: config.totalRounds,
     warmupEnabled: toggleWarmup.checked,
     cooldownEnabled: toggleCooldown.checked,
+    presetId: 'custom',
   })
   // Sprint 7 Feature D: 커스텀 설정 적용 시 프리셋 active 해제
   activePresetId = 'custom'
@@ -1501,7 +1507,7 @@ function renderPresets(): void {
       // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
       updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
       // 설정 저장 (Feature C)
-      saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds })
+      saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds, presetId: preset.id })
       // Sprint 7 Feature D: 활성 프리셋 표시
       activePresetId = preset.id
       analytics.presetSelect(preset.id)
@@ -1553,7 +1559,7 @@ function renderCustomPresets(): void {
       renderRoundDots(0, p.totalRounds)
       btnStart.textContent = t('btn.start')
       updateIntervalDisplay(p.workDuration, p.restDuration)
-      saveSettings({ workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds })
+      saveSettings({ workDuration: p.workDuration, restDuration: p.restDuration, totalRounds: p.totalRounds, presetId: p.id })
       activePresetId = p.id
       renderPresets()
       closePanel(settingsPanel)
@@ -1860,9 +1866,11 @@ function init(): void {
       cooldownDuration: cooldownOn ? 60 : 0,
     }
     timer.updateConfig(config)
-    // 토글 체크박스 상태 복원 (Sprint 6 Feature C 버그 수정)
+    // 토글 체크박스 상태 복원
     toggleWarmup.checked   = warmupOn
     toggleCooldown.checked = cooldownOn
+    // 마지막 프리셋 복원
+    if (saved.presetId) activePresetId = saved.presetId
   }
 
   // 초기값 표시
