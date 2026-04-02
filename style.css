@@ -1692,7 +1692,7 @@ input:focus-visible {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 2px;
   text-align: center;
 }
 .cal-header {
@@ -1702,17 +1702,18 @@ input:focus-visible {
   padding-bottom: 4px;
 }
 .cal-empty {
-  aspect-ratio: 1;
+  height: 36px;
 }
 .cal-day {
-  aspect-ratio: 1;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   border-radius: 50%;
   transition: background 0.15s;
+  cursor: default;
 }
 .cal-day.cal-active {
   background: #2d6a4f;
