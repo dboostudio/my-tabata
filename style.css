@@ -1397,6 +1397,47 @@ input:focus-visible {
   margin-right: 4px;
 }
 
+/* ── Google Sheets 연동 ── */
+.google-sync {
+  margin-bottom: 12px;
+  text-align: center;
+}
+.btn-google {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(128,128,128,0.2);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+.btn-google:hover { background: var(--surface2); }
+.google-sync-status {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.google-sync-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-google-small {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid rgba(128,128,128,0.2);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: background 0.2s;
+}
+.btn-google-small:hover { background: var(--surface2); }
+
 /* ── Sprint 30: 휴식 스킵 버튼 ── */
 .btn-skip-rest {
   padding: 6px 16px;

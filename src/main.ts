@@ -8,6 +8,7 @@ import { PRESETS } from './presets'
 import { APP_VERSION } from './version'
 import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE, type Lang } from './i18n'
 import { analytics } from './analytics'
+import { signIn, signOut, isSignedIn, appendWorkout, type WorkoutRow } from './google-sheets'
 
 // ── DOM 요소 ────────────────────────────────────────────
 
@@ -48,6 +49,7 @@ const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
 const heatmapEl         = $('#heatmap')
+const googleSyncEl      = $('#google-sync')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
 const selectLanguage    = $<HTMLSelectElement>('#select-language')
@@ -1088,6 +1090,9 @@ timer.on(event => {
     showSummaryCard(config.totalRounds, durationSeconds, config.workDuration, config.restDuration, stats.streak)
     analytics.workoutComplete(config.totalRounds, durationSeconds, config.workDuration, config.restDuration)
 
+    // Google Sheets 동기화
+    syncWorkoutToSheets(config, durationSeconds).catch(() => {})
+
     // PR 갱신 알림
     if (prevStats.total > 0) {
       if (durationSeconds > prevStats.totalMinutes * 60 / prevStats.total * 1.5) {
@@ -1633,6 +1638,49 @@ function handleSavePreset(): void {
 
 // ── 히트맵 렌더링 (Sprint 16) ────────────────────────────
 
+// ── Google Sheets 연동 UI ──────────────────────────────
+
+function renderGoogleSync(): void {
+  if (isSignedIn()) {
+    googleSyncEl.innerHTML = `
+      <div class="google-sync-status">✅ ${t('google.connected')}</div>
+      <div class="google-sync-actions">
+        <button class="btn-google-small" id="btn-google-signout">${t('google.signout')}</button>
+      </div>
+    `
+    document.getElementById('btn-google-signout')?.addEventListener('click', () => {
+      signOut()
+      renderGoogleSync()
+      showToast(t('google.disconnected'))
+    })
+  } else {
+    googleSyncEl.innerHTML = `
+      <button id="btn-google-signin" class="btn-google">${t('google.signin')}</button>
+    `
+    document.getElementById('btn-google-signin')?.addEventListener('click', async () => {
+      const ok = await signIn()
+      if (ok) {
+        renderGoogleSync()
+        showToast(t('google.connected'))
+      }
+    })
+  }
+}
+
+async function syncWorkoutToSheets(config: { workDuration: number; restDuration: number; totalRounds: number }, durationSeconds: number): Promise<void> {
+  if (!isSignedIn()) return
+  const presetName = activePresetId ? t(`preset.${activePresetId}.name`) : 'Custom'
+  const row: WorkoutRow = {
+    date: new Date().toISOString(),
+    presetName,
+    workDuration: config.workDuration,
+    restDuration: config.restDuration,
+    rounds: config.totalRounds,
+    durationSeconds,
+  }
+  await appendWorkout(row)
+}
+
 function renderHeatmap(): void {
   const data = storage.getHeatmapData(8)
   if (data.size === 0) {
@@ -1789,6 +1837,7 @@ function renderHistory(): void {
   renderHistoryItems()
   renderHeatmap()
   renderHistoryDeleteArea()
+  renderGoogleSync()
 }
 
 
