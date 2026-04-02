@@ -1717,21 +1717,29 @@ input:focus-visible {
   transition: background 0.15s;
   cursor: default;
 }
-.cal-day.cal-active {
+.cal-day.cal-lv1 {
+  background: #1b4332;
+  color: #a7d8c0;
+}
+.cal-day.cal-lv2 {
   background: #2d6a4f;
-  color: #fff;
+  color: #d8f3e6;
   font-weight: 600;
+}
+.cal-day.cal-lv3 {
+  background: #40916c;
+  color: #fff;
+  font-weight: 700;
 }
 .cal-day.cal-today {
   border: 2px solid var(--phase-color);
 }
-.cal-day.cal-active.cal-today {
-  background: var(--phase-color);
-  border-color: transparent;
+.cal-day[class*="cal-lv"].cal-today {
+  border-color: #fff;
 }
-.light-theme .cal-day.cal-active {
-  background: #40916c;
-}
+.light-theme .cal-day.cal-lv1 { background: #d8f3dc; color: #2d6a4f; }
+.light-theme .cal-day.cal-lv2 { background: #95d5b2; color: #1b4332; }
+.light-theme .cal-day.cal-lv3 { background: #52b788; color: #fff; }
 
 /* Sprint 13: 극소형 화면 (< 360px) */
 @media (max-width: 360px) {

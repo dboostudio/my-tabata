@@ -1686,18 +1686,21 @@ async function syncWorkoutToSheets(config: { workDuration: number; restDuration:
 let calendarMonth = new Date().getMonth()
 let calendarYear = new Date().getFullYear()
 
-async function getWorkoutDates(): Promise<Set<string>> {
-  // Google Sheets 우선, 폴백 localStorage
+async function getWorkoutCounts(): Promise<Map<string, number>> {
+  const map = new Map<string, number>()
+  let dates: string[]
   if (isSignedIn()) {
     const rows = await fetchWorkouts()
-    return new Set(rows.map(r => r.date.slice(0, 10)))
+    dates = rows.map(r => r.date.slice(0, 10))
+  } else {
+    dates = storage.getHistory().map(r => new Date(r.date).toISOString().slice(0, 10))
   }
-  const history = storage.getHistory()
-  return new Set(history.map(r => new Date(r.date).toISOString().slice(0, 10)))
+  for (const d of dates) map.set(d, (map.get(d) ?? 0) + 1)
+  return map
 }
 
 async function renderCalendar(): Promise<void> {
-  const dates = await getWorkoutDates()
+  const counts = await getWorkoutCounts()
   const today = new Date()
   const todayKey = today.toISOString().slice(0, 10)
 
@@ -1719,9 +1722,10 @@ async function renderCalendar(): Promise<void> {
   // 날짜 셀
   for (let d = 1; d <= daysInMonth; d++) {
     const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const hasWorkout = dates.has(key)
+    const count = counts.get(key) ?? 0
+    const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3
     const isToday = key === todayKey
-    const cls = `cal-day${hasWorkout ? ' cal-active' : ''}${isToday ? ' cal-today' : ''}`
+    const cls = `cal-day${level > 0 ? ` cal-lv${level}` : ''}${isToday ? ' cal-today' : ''}`
     cells += `<div class="${cls}" data-date="${key}">${d}</div>`
   }
 
@@ -1746,7 +1750,7 @@ async function renderCalendar(): Promise<void> {
   })
 
   // 날짜 탭 → 상세 표시
-  calendarWidget.querySelectorAll<HTMLElement>('.cal-day.cal-active').forEach(cell => {
+  calendarWidget.querySelectorAll<HTMLElement>('.cal-day[class*="cal-lv"]').forEach(cell => {
     cell.style.cursor = 'pointer'
     cell.addEventListener('click', () => {
       const dateKey = cell.dataset['date']!
