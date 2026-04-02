@@ -1708,16 +1708,16 @@ input:focus-visible {
   padding-bottom: 4px;
 }
 .cal-empty {
-  height: 36px;
+  height: 34px;
 }
 .cal-day {
-  height: 36px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  border-radius: 50%;
+  border-radius: 6px;
   transition: background 0.15s;
   cursor: default;
 }
@@ -1737,9 +1737,10 @@ input:focus-visible {
 }
 .cal-day.cal-today {
   border: 2px solid var(--phase-color);
+  border-radius: 6px;
 }
 .cal-day[class*="cal-lv"].cal-today {
-  border-color: #fff;
+  border-color: rgba(255,255,255,0.6);
 }
 .light-theme .cal-day.cal-lv1 { background: #d8f3dc; color: #2d6a4f; }
 .light-theme .cal-day.cal-lv2 { background: #95d5b2; color: #1b4332; }
