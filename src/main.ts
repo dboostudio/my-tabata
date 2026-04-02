@@ -716,8 +716,9 @@ function toggleKeyboardHelp(): void {
       <div class="keyboard-row"><kbd>?</kbd> ${t('keyboard.help')}</div>
     </div>
   `
-  overlay.addEventListener('click', () => overlay!.remove())
+  overlay.addEventListener('click', () => { overlay!.remove(); if (history.state?.overlay) history.back() })
   document.body.appendChild(overlay)
+  history.pushState({ overlay: true }, '')
 }
 
 function hideKeyboardHelp(): void {
@@ -1229,15 +1230,59 @@ function closePanel(panel: HTMLElement, skipHistory = false): void {
   }
 }
 
-// ── 뒤로가기로 패널 닫기 (Android TWA) ─────────────────
+// ── 뒤로가기 전체 처리 (Android TWA) ────────────────────
 window.addEventListener('popstate', () => {
-  // 열린 패널이 있으면 닫기 (앱 종료 방지)
+  // 0. 웰컴 모달 열림 → 뒤로가기 무시 (닫으면 안 됨)
+  if (welcomeModal.style.display === 'flex') {
+    history.pushState({ welcome: true }, '')
+    return
+  }
+
+  // 1. 키보드 도움말 열림 → 닫기
+  const kbHelp = document.getElementById('keyboard-help')
+  if (kbHelp) {
+    kbHelp.remove()
+    return
+  }
+
+  // 2. 패널 열림 → 닫기
   if (settingsPanel.classList.contains('open')) {
     closePanel(settingsPanel, true)
     scrollToTop()
-  } else if (historyPanel.classList.contains('open')) {
+    return
+  }
+  if (historyPanel.classList.contains('open')) {
     closePanel(historyPanel, true)
     scrollToTop()
+    return
+  }
+
+  // 3. 완료 카드 표시 중 → 카드 닫고 idle로
+  if (summaryCard.classList.contains('visible')) {
+    hideSummaryCard()
+    timer.reset()
+    const cfg = timer.getState().config
+    timerNumber.textContent = String(cfg.workDuration)
+    phaseLabel.textContent = t('phase.idle')
+    btnStart.textContent = t('btn.start')
+    setBodyTint('idle')
+    document.title = t('tab.default')
+    return
+  }
+
+  // 4. 운동 중/일시정지 → 일시정지 (종료 방지)
+  const state = timer.getState()
+  if (state.phase !== 'idle' && state.phase !== 'complete') {
+    // 뒤로가기 소비 — 앱 종료 방지
+    history.pushState({ guard: true }, '')
+    if (state.isRunning) {
+      timer.pause()
+      stopCircleAnimation()
+      setRingPaused(true)
+      btnStart.textContent = t('btn.resume')
+      releaseWakeLock()
+    }
+    return
   }
 })
 
@@ -1706,6 +1751,7 @@ function init(): void {
   try {
     if (!localStorage.getItem(WELCOME_KEY)) {
       welcomeModal.style.display = 'flex'
+      history.pushState({ welcome: true }, '')
       welcomeModal.querySelectorAll<HTMLButtonElement>('.welcome-lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const lang = btn.dataset['lang'] as Lang
