@@ -1212,16 +1212,34 @@ const panelTrapCleanups = new Map<HTMLElement, () => void>()
 function openPanel(panel: HTMLElement, trigger?: HTMLElement | null): void {
   panel.scrollTop = 0
   panel.classList.add('open')
+  history.pushState({ panel: panel.id }, '')
   const existing = panelTrapCleanups.get(panel)
   if (existing) existing()
   panelTrapCleanups.set(panel, trapFocus(panel, trigger))
 }
 
-function closePanel(panel: HTMLElement): void {
+function closePanel(panel: HTMLElement, skipHistory = false): void {
+  if (!panel.classList.contains('open')) return
   panel.classList.remove('open')
   const cleanup = panelTrapCleanups.get(panel)
   if (cleanup) { cleanup(); panelTrapCleanups.delete(panel) }
+  // popstate에서 호출 시 history.back() 중복 방지
+  if (!skipHistory && history.state?.panel === panel.id) {
+    history.back()
+  }
 }
+
+// ── 뒤로가기로 패널 닫기 (Android TWA) ─────────────────
+window.addEventListener('popstate', () => {
+  // 열린 패널이 있으면 닫기 (앱 종료 방지)
+  if (settingsPanel.classList.contains('open')) {
+    closePanel(settingsPanel, true)
+    scrollToTop()
+  } else if (historyPanel.classList.contains('open')) {
+    closePanel(historyPanel, true)
+    scrollToTop()
+  }
+})
 
 // 설정 패널
 btnSettings.addEventListener('click', () => openPanel(settingsPanel, btnSettings))
