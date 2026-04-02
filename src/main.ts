@@ -1635,6 +1635,10 @@ function handleSavePreset(): void {
 
 function renderHeatmap(): void {
   const data = storage.getHeatmapData(8)
+  if (data.size === 0) {
+    heatmapEl.innerHTML = ''
+    return
+  }
   const today = new Date()
   const dayLabels = ['', 'M', '', 'W', '', 'F', '']
 
