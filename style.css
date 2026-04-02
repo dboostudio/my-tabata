@@ -1406,9 +1406,10 @@ input:focus-visible {
   border-radius: 12px;
   background: var(--surface2);
   padding: 0;
+  border: 1px solid rgba(128,128,128,0.1);
 }
 .section-collapsible summary {
-  padding: 16px;
+  padding: 16px 24px;
   cursor: pointer;
   list-style: none;
   display: flex;
@@ -1446,7 +1447,7 @@ input:focus-visible {
   display: none;
 }
 .section-collapsible > :not(summary) {
-  padding: 8px 20px 20px;
+  padding: 12px 24px 24px;
   border-top: 1px solid rgba(128,128,128,0.15);
 }
 
