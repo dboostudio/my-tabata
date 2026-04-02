@@ -1144,9 +1144,13 @@ btnStart.addEventListener('pointerleave', cancelLongPress)
 btnStart.addEventListener('contextmenu', (e: MouseEvent) => { e.preventDefault() })
 
 // ── 타이머 원형 영역 터치로 pause/resume (VOC) ──────────
+let panelClosedAt = 0
+
 circleWrapper.addEventListener('click', (e: MouseEvent) => {
   // 내부 요소(summary card 버튼 등) 클릭 시 무시
   if ((e.target as HTMLElement).closest('button, a')) return
+  // 패널 닫은 직후 300ms 이내 클릭 무시 (닫기 버튼 → circleWrapper 전파 방지)
+  if (Date.now() - panelClosedAt < 300) return
   const state = timer.getState()
   // 운동 중이거나 일시정지 중일 때만 반응
   if (state.phase === 'idle' || state.phase === 'complete' || state.phase === 'countdown') return
@@ -1286,6 +1290,7 @@ function openPanel(panel: HTMLElement, trigger?: HTMLElement | null): void {
 function closePanel(panel: HTMLElement, skipHistory = false): void {
   if (!panel.classList.contains('open')) return
   panel.classList.remove('open')
+  panelClosedAt = Date.now()
   const cleanup = panelTrapCleanups.get(panel)
   if (cleanup) { cleanup(); panelTrapCleanups.delete(panel) }
   // popstate에서 호출 시 history.back() 중복 방지
