@@ -1700,6 +1700,7 @@ async function getWorkoutCounts(): Promise<Map<string, number>> {
 }
 
 async function renderCalendar(): Promise<void> {
+  calendarDetail.style.display = 'none'
   const counts = await getWorkoutCounts()
   const today = new Date()
   const todayKey = today.toISOString().slice(0, 10)
@@ -1714,7 +1715,7 @@ async function renderCalendar(): Promise<void> {
     t('calendar.may'), t('calendar.jun'), t('calendar.jul'), t('calendar.aug'),
     t('calendar.sep'), t('calendar.oct'), t('calendar.nov'), t('calendar.dec'),
   ]
-  const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+  const dayHeaders = t('calendar.days').split(',')  // "S,M,T,W,T,F,S"
 
   let cells = dayHeaders.map(d => `<div class="cal-header">${d}</div>`).join('')
   // 빈 셀
@@ -1840,8 +1841,10 @@ function renderHistoryItems(): void {
   if (history.length === 0) {
     historyList.innerHTML = `
       <div class="empty-history">
+        <div class="empty-history-emoji">💪</div>
         <p>${t('history.empty')}</p>
-        <button class="btn-outline btn-start-first" id="btn-start-first">${t('btn.start')}</button>
+        <p class="empty-history-sub">${t('history.emptyHint')}</p>
+        <button class="btn-primary btn-start-first" id="btn-start-first">${t('btn.start')}</button>
       </div>`
     document.getElementById('btn-start-first')?.addEventListener('click', () => {
       closePanel(historyPanel)

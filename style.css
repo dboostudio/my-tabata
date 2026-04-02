@@ -466,8 +466,10 @@ input:focus-visible {
 .history-date   { color: var(--text-muted); }
 .history-detail { color: var(--text); }
 .history-duration { color: var(--phase-color); font-weight: 600; }
-.empty-history  { color: var(--text-muted); text-align: center; padding: 32px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.btn-start-first { font-size: 0.85rem; padding: 8px 24px; }
+.empty-history  { color: var(--text-muted); text-align: center; padding: 24px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.empty-history-emoji { font-size: 2rem; }
+.empty-history-sub { font-size: 0.78rem; color: var(--text-muted); opacity: 0.7; }
+.btn-start-first { font-size: 0.9rem; padding: 12px 32px; margin-top: 4px; }
 .btn-load-more { width: 100%; margin-top: 8px; font-size: 0.85rem; padding: 10px; }
 
 /* ── 오버레이 (패널 닫기) ── */
@@ -1402,12 +1404,14 @@ input:focus-visible {
   margin-bottom: 16px;
 }
 .section-label {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--phase-color);
 }
 .calendar-detail {
   font-size: 0.82rem;
@@ -1430,8 +1434,8 @@ input:focus-visible {
 
 /* ── Google Sheets 연동 ── */
 .google-sync {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(128,128,128,0.12);
   text-align: center;
 }
