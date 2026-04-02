@@ -129,6 +129,16 @@ async function getOrCreateSpreadsheet(): Promise<string> {
   return id
 }
 
+// ── 캐시 ───────────────────────────────────────────────
+let cachedRows: WorkoutRow[] | null = null
+let cacheTime = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5분
+
+function invalidateCache(): void {
+  cachedRows = null
+  cacheTime = 0
+}
+
 // ── 운동 기록 추가 ─────────────────────────────────────
 export interface WorkoutRow {
   date: string
@@ -158,15 +168,17 @@ export async function appendWorkout(row: WorkoutRow): Promise<boolean> {
         ]]
       }),
     })
+    invalidateCache()
     return true
   } catch {
     return false
   }
 }
 
-// ── 시트에서 전체 기록 불러오기 ─────────────────────────
-export async function fetchWorkouts(): Promise<WorkoutRow[]> {
+// ── 시트에서 전체 기록 불러오기 (캐시 포함) ──────────────
+export async function fetchWorkouts(forceRefresh = false): Promise<WorkoutRow[]> {
   if (!accessToken) return []
+  if (!forceRefresh && cachedRows && Date.now() - cacheTime < CACHE_TTL) return cachedRows
   try {
     const sheetId = await getOrCreateSpreadsheet()
     const data = await sheetsApi(`/${sheetId}/values/Workouts!A2:G1000`)
@@ -178,6 +190,8 @@ export async function fetchWorkouts(): Promise<WorkoutRow[]> {
       rounds: Number(r[4]) || 0,
       durationSeconds: Number(r[5]) || 0,
     }))
+    cachedRows = rows
+    cacheTime = Date.now()
     return rows
   } catch {
     return []

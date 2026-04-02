@@ -8,7 +8,7 @@ import { PRESETS } from './presets'
 import { APP_VERSION } from './version'
 import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE, type Lang } from './i18n'
 import { analytics } from './analytics'
-import { signIn, signOut, isSignedIn, appendWorkout, type WorkoutRow } from './google-sheets'
+import { signIn, signOut, isSignedIn, appendWorkout, fetchWorkouts, type WorkoutRow } from './google-sheets'
 
 // ── DOM 요소 ────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ const onboardingTooltip = $('#onboarding-tooltip')
 const intervalDisplay   = $('#interval-display')
 const progressRingSvg   = $('#progress-ring-svg')
 const historyDeleteArea = $('#history-delete-area')
-const heatmapEl         = $('#heatmap')
+const calendarWidget    = $('#calendar-widget')
 const googleSyncEl      = $('#google-sync')
 const toggleMinimalist  = $<HTMLInputElement>('#toggle-minimalist')
 const toggleTheme       = $<HTMLInputElement>('#toggle-theme')
@@ -1681,42 +1681,67 @@ async function syncWorkoutToSheets(config: { workDuration: number; restDuration:
   await appendWorkout(row)
 }
 
-function renderHeatmap(): void {
-  const data = storage.getHeatmapData(8)
-  if (data.size === 0) {
-    heatmapEl.innerHTML = ''
-    return
+let calendarMonth = new Date().getMonth()
+let calendarYear = new Date().getFullYear()
+
+async function getWorkoutDates(): Promise<Set<string>> {
+  // Google Sheets 우선, 폴백 localStorage
+  if (isSignedIn()) {
+    const rows = await fetchWorkouts()
+    return new Set(rows.map(r => r.date.slice(0, 10)))
   }
+  const history = storage.getHistory()
+  return new Set(history.map(r => new Date(r.date).toISOString().slice(0, 10)))
+}
+
+async function renderCalendar(): Promise<void> {
+  const dates = await getWorkoutDates()
   const today = new Date()
-  const dayLabels = ['', 'M', '', 'W', '', 'F', '']
+  const todayKey = today.toISOString().slice(0, 10)
 
-  // 8주 데이터를 7행(요일) × 8열(주) 그리드로 배치
-  // 오늘 요일 기준으로 마지막 열 결정
-  const todayDay = today.getDay() // 0=Sun
-  const startDate = new Date(today)
-  startDate.setDate(startDate.getDate() - 55 - todayDay) // 8주 전 일요일
+  const year = calendarYear
+  const month = calendarMonth
+  const firstDay = new Date(year, month, 1).getDay() // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  const grid: string[][] = Array.from({ length: 7 }, () => [])
-  for (let week = 0; week < 8; week++) {
-    for (let day = 0; day < 7; day++) {
-      const d = new Date(startDate)
-      d.setDate(d.getDate() + week * 7 + day)
-      if (d > today) {
-        grid[day]!.push('<div class="heatmap-cell heatmap-empty"></div>')
-        continue
-      }
-      const key = d.toISOString().slice(0, 10)
-      const count = data.get(key) ?? 0
-      const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3
-      grid[day]!.push(`<div class="heatmap-cell heatmap-${level}" title="${key}: ${count}"></div>`)
-    }
+  const monthNames = [
+    t('calendar.jan'), t('calendar.feb'), t('calendar.mar'), t('calendar.apr'),
+    t('calendar.may'), t('calendar.jun'), t('calendar.jul'), t('calendar.aug'),
+    t('calendar.sep'), t('calendar.oct'), t('calendar.nov'), t('calendar.dec'),
+  ]
+  const dayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+  let cells = dayHeaders.map(d => `<div class="cal-header">${d}</div>`).join('')
+  // 빈 셀
+  for (let i = 0; i < firstDay; i++) cells += '<div class="cal-empty"></div>'
+  // 날짜 셀
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const hasWorkout = dates.has(key)
+    const isToday = key === todayKey
+    const cls = `cal-day${hasWorkout ? ' cal-active' : ''}${isToday ? ' cal-today' : ''}`
+    cells += `<div class="${cls}">${d}</div>`
   }
 
-  const rows = grid.map((cells, i) =>
-    `<div class="heatmap-row"><span class="heatmap-day-label">${dayLabels[i]}</span>${cells.join('')}</div>`
-  ).join('')
+  calendarWidget.innerHTML = `
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="cal-prev">‹</button>
+      <span class="cal-month">${monthNames[month]} ${year}</span>
+      <button class="cal-nav-btn" id="cal-next">›</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+  `
 
-  heatmapEl.innerHTML = `<div class="heatmap-week-grid">${rows}</div>`
+  document.getElementById('cal-prev')?.addEventListener('click', () => {
+    calendarMonth--
+    if (calendarMonth < 0) { calendarMonth = 11; calendarYear-- }
+    renderCalendar()
+  })
+  document.getElementById('cal-next')?.addEventListener('click', () => {
+    calendarMonth++
+    if (calendarMonth > 11) { calendarMonth = 0; calendarYear++ }
+    renderCalendar()
+  })
 }
 
 // ── 기록 렌더링 ───────────────────────────────────────────
@@ -1835,7 +1860,7 @@ function renderHistory(): void {
   animateCount(statsBestStreak, stats.bestStreak)
   historyShowCount = HISTORY_PAGE_SIZE
   renderHistoryItems()
-  renderHeatmap()
+  renderCalendar()
   renderHistoryDeleteArea()
   renderGoogleSync()
 }

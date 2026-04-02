@@ -1629,44 +1629,73 @@ input:focus-visible {
 .history-item:nth-child(9)  { animation-delay: 0.24s; }
 .history-item:nth-child(10) { animation-delay: 0.27s; }
 
-/* ── Sprint 16: 히트맵 ── */
-.heatmap {
+/* ── 월간 달력 위젯 ── */
+.calendar-widget {
   margin-bottom: 16px;
 }
-.heatmap-week-grid {
+.cal-nav {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.heatmap-row {
-  display: flex;
-  gap: 2px;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
-.heatmap-day-label {
-  width: 16px;
-  font-size: 0.6rem;
-  color: var(--text-muted);
-  text-align: right;
-  flex-shrink: 0;
-}
-.heatmap-cell {
-  flex: 1;
-  aspect-ratio: 1;
-  border-radius: 2px;
-  background: var(--surface2);
-}
-.heatmap-empty {
+.cal-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: transparent;
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
 }
-.heatmap-0 { background: var(--surface2); }
-.heatmap-1 { background: #2d6a4f; }
-.heatmap-2 { background: #40916c; }
-.heatmap-3 { background: #51CF66; }
-.light-theme .heatmap-0 { background: var(--surface2); }
-.light-theme .heatmap-1 { background: #b7e4c7; }
-.light-theme .heatmap-2 { background: #74c69d; }
-.light-theme .heatmap-3 { background: #40916c; }
+.cal-nav-btn:hover { background: var(--surface2); }
+.cal-month {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+.cal-header {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding-bottom: 4px;
+}
+.cal-empty {
+  aspect-ratio: 1;
+}
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.cal-day.cal-active {
+  background: #2d6a4f;
+  color: #fff;
+  font-weight: 600;
+}
+.cal-day.cal-today {
+  border: 2px solid var(--phase-color);
+}
+.cal-day.cal-active.cal-today {
+  background: var(--phase-color);
+  border-color: transparent;
+}
+.light-theme .cal-day.cal-active {
+  background: #40916c;
+}
 
 /* Sprint 13: 극소형 화면 (< 360px) */
 @media (max-width: 360px) {
