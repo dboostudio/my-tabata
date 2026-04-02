@@ -1,7 +1,7 @@
 // 📄 src/google-sheets.ts — Google Sheets 운동기록 연동
 
 const CLIENT_ID = '74843422306-l7akjfdh93oh830fent5c0e54c3o02s9.apps.googleusercontent.com'
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
+const SCOPES = 'https://www.googleapis.com/auth/drive.file'
 const SHEET_NAME = 'MyTabata Workouts'
 const SPREADSHEET_KEY = 'tabata_spreadsheet_id'
 const TOKEN_KEY = 'tabata_gtoken'
