@@ -752,22 +752,26 @@ input:focus-visible {
 
 /* Toggle row UI */
 .toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
   cursor: pointer;
   padding: 4px 0;
   user-select: none;
+  align-items: center;
 }
 .toggle-label {
   font-size: 0.9rem;
   color: var(--text);
-  flex: 1;
+  grid-column: 1;
+  grid-row: 1;
 }
 .toggle-desc {
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-right: 8px;
+  grid-column: 1;
+  grid-row: 2;
 }
 .toggle-checkbox {
   position: absolute;
@@ -784,6 +788,9 @@ input:focus-visible {
   border-radius: 11px;
   transition: background 0.25s;
   flex-shrink: 0;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
 }
 .toggle-switch::after {
   content: '';
