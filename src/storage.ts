@@ -21,6 +21,7 @@ export interface WorkoutRecord {
   workDuration: number
   restDuration: number
   durationSeconds: number  // 총 소요 시간
+  presetId?: string     // 사용한 프리셋 ID
 }
 
 export class WorkoutStorage {

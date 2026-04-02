@@ -1070,6 +1070,7 @@ timer.on(event => {
         workDuration: config.workDuration,
         restDuration: config.restDuration,
         durationSeconds,
+        presetId: activePresetId ?? undefined,
       })
     }
     workoutStartTime = null
@@ -1091,6 +1092,9 @@ timer.on(event => {
 
     // 배경 틴트 리셋 (Sprint 4 Feature C)
     setBodyTint('complete')
+
+    // 완료 카드로 스크롤
+    document.querySelector<HTMLElement>('.timer-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
     // Sprint 9 Feature A: 첫 완료 운동 후 PWA 설치 배너 표시
     showPwaInstallBanner()
@@ -1679,7 +1683,7 @@ function renderHistoryItems(): void {
     return `
       <div class="history-item">
         <span class="history-date">${date.toLocaleDateString(locale)}</span>
-        <span class="history-detail">${interval} × ${r.rounds}</span>
+        <span class="history-detail">${r.presetId ? t(`preset.${r.presetId}.name`) + ' · ' : ''}${interval} × ${r.rounds}</span>
         <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
       </div>`
   }).join('')
