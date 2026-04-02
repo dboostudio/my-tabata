@@ -1323,6 +1323,23 @@ input:focus-visible {
   color: #FFC107 !important;
 }
 
+/* ── Sprint 31: 현재 프리셋 뱃지 ── */
+.current-preset-badge {
+  font-size: 0.82rem;
+  color: var(--text);
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--phase-color) 10%, transparent);
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--phase-color);
+}
+.current-preset-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-right: 4px;
+}
+
 /* ── Sprint 30: 휴식 스킵 버튼 ── */
 .btn-skip-rest {
   padding: 6px 16px;

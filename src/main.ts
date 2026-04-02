@@ -1447,7 +1447,19 @@ btnApplyConfig.addEventListener('click', () => {
 
 // ── 프리셋 렌더링 ───────────────────────────────────────────
 
+const currentPresetBadge = $('#current-preset-badge')
+
 function renderPresets(): void {
+  // 현재 활성 프리셋 뱃지
+  if (activePresetId) {
+    const active = PRESETS.find(p => p.id === activePresetId)
+    const name = active ? `${active.emoji} ${t(`preset.${activePresetId}.name`)}` : t(`preset.${activePresetId}.name`)
+    currentPresetBadge.innerHTML = `<span class="current-preset-label">${t('settings.current')}</span> ${name}`
+    currentPresetBadge.style.display = 'block'
+  } else {
+    currentPresetBadge.style.display = 'none'
+  }
+
   presetGrid.innerHTML = PRESETS.map(p => {
     const totalSecs = (p.config.workDuration + p.config.restDuration) * p.config.totalRounds + p.config.countdownDuration
     const totalBadge = formatDuration(totalSecs)
@@ -1490,8 +1502,8 @@ function renderPresets(): void {
       activePresetId = preset.id
       analytics.presetSelect(preset.id)
       renderPresets()
-      closePanel(settingsPanel)
-      scrollToTop()
+      showToast(t(`preset.${preset.id}.name`))
+      setTimeout(() => { closePanel(settingsPanel); scrollToTop() }, 300)
     })
   })
 }
