@@ -1414,6 +1414,21 @@ function attachInputValidation(): void {
   inputWork.addEventListener('input', () => { validateInput({ min: 5, max: 300, errorEl: errWork, inputEl: inputWork }); updateEstimatedTime() })
   inputRest.addEventListener('input', () => { validateInput({ min: 3, max: 180, errorEl: errRest, inputEl: inputRest }); updateEstimatedTime() })
   inputRounds.addEventListener('input', () => { validateRoundsInput(); updateEstimatedTime() })
+
+  // 스테퍼 +/- 버튼
+  document.querySelectorAll<HTMLButtonElement>('.stepper-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset['target']!) as HTMLInputElement
+      if (!input) return
+      const step = Number(btn.dataset['step'] || 1)
+      const min = Number(input.min)
+      const max = Number(input.max)
+      const current = Number(input.value) || 0
+      const isInc = btn.classList.contains('stepper-inc')
+      input.value = String(Math.max(min, Math.min(max, current + (isInc ? step : -step))))
+      input.dispatchEvent(new Event('input'))
+    })
+  })
 }
 
 // ── 설정 적용 ──────────────────────────────────────────────

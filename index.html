@@ -180,21 +180,33 @@
     <details class="section section-collapsible">
       <summary><h3 data-i18n="settings.custom">커스텀 인터벌</h3></summary>
       <div class="input-group">
-        <div class="input-row">
-          <label for="input-work" data-i18n="input.workTime">운동 시간 (초)</label>
-          <input id="input-work" type="number" min="5" max="300" value="20" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-work" />
+        <div class="stepper-row">
+          <label data-i18n="input.workTime">운동 시간 (초)</label>
+          <div class="stepper">
+            <button class="stepper-btn stepper-dec" data-target="input-work" data-step="5" aria-label="-5">−</button>
+            <input id="input-work" type="number" min="5" max="300" value="20" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-work" />
+            <button class="stepper-btn stepper-inc" data-target="input-work" data-step="5" aria-label="+5">+</button>
+          </div>
+          <div id="err-work" class="input-error" aria-live="polite"></div>
         </div>
-        <div id="err-work" class="input-error" aria-live="polite"></div>
-        <div class="input-row">
-          <label for="input-rest" data-i18n="input.restTime">휴식 시간 (초)</label>
-          <input id="input-rest" type="number" min="3" max="180" value="10" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rest" />
+        <div class="stepper-row">
+          <label data-i18n="input.restTime">휴식 시간 (초)</label>
+          <div class="stepper">
+            <button class="stepper-btn stepper-dec" data-target="input-rest" data-step="5" aria-label="-5">−</button>
+            <input id="input-rest" type="number" min="3" max="180" value="10" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rest" />
+            <button class="stepper-btn stepper-inc" data-target="input-rest" data-step="5" aria-label="+5">+</button>
+          </div>
+          <div id="err-rest" class="input-error" aria-live="polite"></div>
         </div>
-        <div id="err-rest" class="input-error" aria-live="polite"></div>
-        <div class="input-row">
-          <label for="input-rounds" data-i18n="input.rounds">라운드 수</label>
-          <input id="input-rounds" type="number" min="1" max="99" value="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rounds" />
+        <div class="stepper-row">
+          <label data-i18n="input.rounds">라운드 수</label>
+          <div class="stepper">
+            <button class="stepper-btn stepper-dec" data-target="input-rounds" data-step="1" aria-label="-1">−</button>
+            <input id="input-rounds" type="number" min="1" max="99" value="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="err-rounds" />
+            <button class="stepper-btn stepper-inc" data-target="input-rounds" data-step="1" aria-label="+1">+</button>
+          </div>
+          <div id="err-rounds" class="input-error" aria-live="polite"></div>
         </div>
-        <div id="err-rounds" class="input-error" aria-live="polite"></div>
       </div>
       <div id="estimated-time" class="estimated-time"></div>
       <button id="btn-apply-config" class="btn-outline" data-i18n="btn.apply" style="width:100%">적용</button>

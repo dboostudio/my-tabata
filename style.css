@@ -353,20 +353,57 @@ input:focus-visible {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
-.input-group input {
-  width: 100%;
-  max-width: 140px;
-  padding: 10px 12px;
-  border-radius: 8px;
+.stepper-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stepper-row label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
   background: var(--surface2);
+}
+.stepper-btn {
+  width: 52px;
+  height: 48px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--phase-color);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.stepper-btn:hover { background: color-mix(in srgb, var(--phase-color) 12%, transparent); }
+.stepper-btn:active { background: color-mix(in srgb, var(--phase-color) 25%, transparent); }
+.input-group input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 4px;
+  background: transparent;
   color: var(--text);
-  border: 1px solid transparent;
+  border: none;
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.input-group input::-webkit-outer-spin-button,
+.input-group input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 .input-group input:focus {
   outline: none;
-  border-color: var(--phase-color);
 }
 .btn-outline {
   padding: 10px 24px;
