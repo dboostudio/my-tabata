@@ -1337,7 +1337,8 @@ window.addEventListener('popstate', () => {
     return
   }
 
-  // 2. 패널 열림 → 닫기
+  // 2. 패널 닫기에 의한 popstate (closePanel → history.back()) → 무시
+  //    패널은 이미 closePanel()에서 닫혔으므로 추가 동작 불필요
   if (settingsPanel.classList.contains('open')) {
     closePanel(settingsPanel, true)
     scrollToTop()
@@ -1348,6 +1349,8 @@ window.addEventListener('popstate', () => {
     scrollToTop()
     return
   }
+  // closePanel의 history.back()으로 발생한 popstate면 여기서 끝
+  if (panelJustClosed) return
 
   // 3. 완료 카드 표시 중 → 카드 닫고 idle로
   if (summaryCard.classList.contains('visible')) {
