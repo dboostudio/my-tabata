@@ -600,8 +600,8 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
     inputRounds.value = String(preset.config.totalRounds)
     roundLabel.textContent = `0 / ${preset.config.totalRounds}`
     renderRoundDots(0, preset.config.totalRounds)
-    updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
     activePresetId = preset.id
+    updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
     btnStart.textContent = t('btn.start')
     updateEstimatedTime()
   })
@@ -1575,12 +1575,9 @@ function renderPresets(): void {
       roundLabel.textContent = `0 / ${preset.config.totalRounds}`
       renderRoundDots(0, preset.config.totalRounds)
       btnStart.textContent = t('btn.start')
-      // 인터벌 설정 표시 업데이트 (Sprint 4 Feature A)
-      updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
-      // 설정 저장 (Feature C)
-      saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds, presetId: preset.id })
-      // Sprint 7 Feature D: 활성 프리셋 표시
       activePresetId = preset.id
+      updateIntervalDisplay(preset.config.workDuration, preset.config.restDuration)
+      saveSettings({ workDuration: preset.config.workDuration, restDuration: preset.config.restDuration, totalRounds: preset.config.totalRounds, presetId: preset.id })
       analytics.presetSelect(preset.id)
       renderPresets()
       showToast(t(`preset.${preset.id}.name`))
