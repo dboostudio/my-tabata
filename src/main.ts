@@ -1814,6 +1814,71 @@ async function showCalendarDetail(dateKey: string): Promise<void> {
   calendarDetail.style.display = 'block'
 }
 
+// ── Sheets 데이터 기반 통계/히스토리 ─────────────────────
+
+function renderSheetsStats(rows: WorkoutRow[]): void {
+  if (rows.length === 0) {
+    statsSection.style.display = 'none'
+    return
+  }
+  statsSection.style.display = ''
+  const now = new Date()
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const thisWeek = rows.filter(r => new Date(r.date) >= weekAgo).length
+  const totalSecs = rows.reduce((s, r) => s + r.durationSeconds, 0)
+  const totalMin = Math.round(totalSecs / 60)
+  const avgMin = Math.round(totalSecs / rows.length / 60)
+
+  // 스트릭 계산
+  const days = new Set(rows.map(r => new Date(r.date).toDateString()))
+  let streak = 0
+  let checkDate = new Date(now)
+  while (days.has(checkDate.toDateString())) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
+
+  // 최장 스트릭
+  const sortedDays = [...new Set(rows.map(r => new Date(r.date).toDateString()))].map(d => new Date(d).getTime()).sort((a, b) => a - b)
+  let bestStreak = sortedDays.length > 0 ? 1 : 0
+  let run = 1
+  for (let i = 1; i < sortedDays.length; i++) {
+    if ((sortedDays[i]! - sortedDays[i-1]!) / 86400000 <= 1.5) { run++; bestStreak = Math.max(bestStreak, run) }
+    else run = 1
+  }
+
+  animateCount(statsTotal, rows.length)
+  animateCount(statsWeek, thisWeek)
+  animateCount(statsStreak, streak)
+  animateCount(statsTotalMin, totalMin)
+  animateCount(statsAvgMin, avgMin)
+  animateCount(statsBestStreak, bestStreak)
+}
+
+function renderSheetsHistoryItems(rows: WorkoutRow[]): void {
+  const locale = DATE_LOCALE[getCurrentLang()]
+  if (rows.length === 0) {
+    historyList.innerHTML = `
+      <div class="empty-history">
+        <div class="empty-history-emoji">💪</div>
+        <p>${t('history.empty')}</p>
+        <p class="empty-history-sub">${t('history.emptyHint')}</p>
+        <button class="btn-primary btn-start-first" id="btn-start-first">${t('btn.start')}</button>
+      </div>`
+    document.getElementById('btn-start-first')?.addEventListener('click', () => { closePanel(historyPanel); btnStart.click() })
+    return
+  }
+  const sorted = [...rows].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  historyList.innerHTML = sorted.slice(0, 20).map(r => {
+    const date = new Date(r.date)
+    const mins = Math.floor(r.durationSeconds / 60)
+    const secs = r.durationSeconds % 60
+    return `
+      <div class="history-item">
+        <span class="history-date">${date.toLocaleDateString(locale)}</span>
+        <span class="history-detail">${r.presetName} · ${r.rounds}R</span>
+        <span class="history-duration">${mins}:${String(secs).padStart(2, '0')}</span>
+      </div>`
+  }).join('')
+}
+
 // ── 기록 렌더링 ───────────────────────────────────────────
 
 function renderHistoryDeleteArea(): void {
@@ -1922,22 +1987,28 @@ function animateCount(el: HTMLElement, target: number, duration = 400): void {
   _countAnimFrames.set(el, requestAnimationFrame(frame))
 }
 
-function renderHistory(): void {
-  const stats = storage.getStats()
-  // 데이터 없으면 stat 숨김
-  if (stats.total === 0) {
-    statsSection.style.display = 'none'
+async function renderHistory(): Promise<void> {
+  // Sheets 로그인 시 시트 데이터로 stat + 히스토리 표시
+  if (isSignedIn()) {
+    const rows = await fetchWorkouts()
+    renderSheetsStats(rows)
+    renderSheetsHistoryItems(rows)
   } else {
-    statsSection.style.display = ''
-    animateCount(statsTotal, stats.total)
-    animateCount(statsWeek, stats.thisWeek)
-    animateCount(statsStreak, stats.streak)
-    animateCount(statsTotalMin, stats.totalMinutes)
-    animateCount(statsAvgMin, stats.avgMinutes)
-    animateCount(statsBestStreak, stats.bestStreak)
+    const stats = storage.getStats()
+    if (stats.total === 0) {
+      statsSection.style.display = 'none'
+    } else {
+      statsSection.style.display = ''
+      animateCount(statsTotal, stats.total)
+      animateCount(statsWeek, stats.thisWeek)
+      animateCount(statsStreak, stats.streak)
+      animateCount(statsTotalMin, stats.totalMinutes)
+      animateCount(statsAvgMin, stats.avgMinutes)
+      animateCount(statsBestStreak, stats.bestStreak)
+    }
+    historyShowCount = HISTORY_PAGE_SIZE
+    renderHistoryItems()
   }
-  historyShowCount = HISTORY_PAGE_SIZE
-  renderHistoryItems()
   renderCalendar()
   renderHistoryDeleteArea()
   renderGoogleSync()

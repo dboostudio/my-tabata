@@ -89,18 +89,40 @@ async function sheetsApi(path: string, options: RequestInit = {}): Promise<any> 
   return resp.json()
 }
 
+// ── Drive API로 기존 시트 검색 ─────────────────────────
+async function findExistingSpreadsheet(): Promise<string | null> {
+  if (!accessToken) return null
+  try {
+    const query = encodeURIComponent(`name='${SHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`)
+    const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id)&spaces=drive`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    })
+    if (!resp.ok) return null
+    const data = await resp.json()
+    if (data.files?.length > 0) return data.files[0].id
+  } catch {}
+  return null
+}
+
 // ── 스프레드시트 생성 or 가져오기 ──────────────────────
 async function getOrCreateSpreadsheet(): Promise<string> {
+  // 1. localStorage 캐시
   try {
     const saved = localStorage.getItem(SPREADSHEET_KEY)
     if (saved) {
-      // 존재 확인
       await sheetsApi(`/${saved}?fields=spreadsheetId`)
       return saved
     }
   } catch {}
 
-  // 새로 생성
+  // 2. Drive에서 기존 시트 검색 (타 기기 대응)
+  const existing = await findExistingSpreadsheet()
+  if (existing) {
+    try { localStorage.setItem(SPREADSHEET_KEY, existing) } catch {}
+    return existing
+  }
+
+  // 3. 없으면 새로 생성
   const data = await sheetsApi('', {
     method: 'POST',
     body: JSON.stringify({
