@@ -8,7 +8,7 @@ export default defineConfig({
                 name: 'MyTabata — 타바타 타이머',
                 short_name: 'MyTabata',
                 description: 'Free Tabata interval timer PWA with 8 presets, voice guidance, and offline support',
-                theme_color: '#FF4D4D',
+                theme_color: '#1a1a2e',
                 background_color: '#1a1a2e',
                 display: 'standalone',
                 start_url: '/',

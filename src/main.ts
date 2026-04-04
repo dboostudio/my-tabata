@@ -179,7 +179,7 @@ function saveLightTheme(light: boolean): void {
 function applyTheme(light: boolean): void {
   document.documentElement.classList.toggle('light-theme', light)
   toggleTheme.checked = light
-  const themeColor = light ? '#f5f5f7' : '#FF4D4D'
+  const themeColor = light ? '#f5f5f7' : '#1a1a2e'
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content', themeColor)
 }
 
