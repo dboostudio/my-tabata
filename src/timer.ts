@@ -191,16 +191,19 @@ export class TabataTimer {
         this._enterPhase('work', 1)
         break
       case 'work':
-        this._enterPhase('rest', round)
+        if (round >= totalRounds) {
+          // 마지막 라운드 → 휴식 없이 바로 완료/쿨다운
+          if (cooldownDuration > 0) {
+            this._enterPhase('cooldown', totalRounds)
+          } else {
+            this._complete()
+          }
+        } else {
+          this._enterPhase('rest', round)
+        }
         break
       case 'rest':
-        if (round < totalRounds) {
-          this._enterPhase('work', round + 1)
-        } else if (cooldownDuration > 0) {
-          this._enterPhase('cooldown', totalRounds)
-        } else {
-          this._complete()
-        }
+        this._enterPhase('work', round + 1)
         break
       case 'cooldown':
         this._complete()
