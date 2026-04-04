@@ -8,7 +8,7 @@ import { PRESETS } from './presets'
 import { APP_VERSION } from './version'
 import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE, type Lang } from './i18n'
 import { analytics } from './analytics'
-import { signIn, signOut, isSignedIn, appendWorkout, fetchWorkouts, type WorkoutRow } from './google-sheets'
+import { signIn, signOut, isSignedIn, appendWorkout, fetchWorkouts, syncLocalToSheets, type WorkoutRow } from './google-sheets'
 
 // ── DOM 요소 ────────────────────────────────────────────
 
@@ -1681,7 +1681,22 @@ function renderGoogleSync(): void {
     document.getElementById('btn-google-signin')?.addEventListener('click', async () => {
       const ok = await signIn()
       if (ok) {
+        // 로컬 기록 → 시트 일괄 업로드
+        const localHistory = storage.getHistory()
+        if (localHistory.length > 0) {
+          const localRows: WorkoutRow[] = localHistory.map(r => ({
+            date: r.date,
+            presetName: r.presetId ? t(`preset.${r.presetId}.name`) : '',
+            workDuration: r.workDuration,
+            restDuration: r.restDuration,
+            rounds: r.rounds,
+            durationSeconds: r.durationSeconds,
+          }))
+          const synced = await syncLocalToSheets(localRows)
+          if (synced > 0) showToast(t('google.synced', { n: synced }))
+        }
         renderGoogleSync()
+        renderHistory()
         showToast(t('google.connected'))
       }
     })

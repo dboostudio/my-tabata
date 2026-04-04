@@ -197,6 +197,37 @@ export async function appendWorkout(row: WorkoutRow): Promise<boolean> {
   }
 }
 
+// ── 로컬 기록 일괄 업로드 (첫 연동 시) ──────────────────
+export async function syncLocalToSheets(localRecords: WorkoutRow[]): Promise<number> {
+  if (!accessToken || localRecords.length === 0) return 0
+  try {
+    const sheetId = await getOrCreateSpreadsheet()
+    // 기존 시트 데이터 확인 → 중복 방지
+    const existing = await fetchWorkouts(true)
+    const existingDates = new Set(existing.map(r => r.date))
+    const newRows = localRecords.filter(r => !existingDates.has(r.date))
+    if (newRows.length === 0) return 0
+
+    const values = newRows.map(r => [
+      r.date,
+      r.presetName,
+      r.workDuration,
+      r.restDuration,
+      r.rounds,
+      r.durationSeconds,
+      Math.round(r.durationSeconds / 60 * 8),
+    ])
+    await sheetsApi(`/${sheetId}/values/Workouts!A:G:append?valueInputOption=USER_ENTERED`, {
+      method: 'POST',
+      body: JSON.stringify({ values }),
+    })
+    invalidateCache()
+    return newRows.length
+  } catch {
+    return 0
+  }
+}
+
 // ── 시트에서 전체 기록 불러오기 (캐시 포함) ──────────────
 export async function fetchWorkouts(forceRefresh = false): Promise<WorkoutRow[]> {
   if (!accessToken) return []
