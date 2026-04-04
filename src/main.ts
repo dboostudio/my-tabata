@@ -1048,6 +1048,11 @@ timer.on(event => {
     // ARIA SVG 레이블 업데이트 (Sprint 4 Feature E)
     updateSvgAriaLabel(phase, timeRemaining, state.currentRound, state.config.totalRounds)
 
+    // 운동 중 5초 간격 비프 (마지막 3초 제외 — 별도 카운트다운)
+    if (phase === 'work' && timeRemaining > 3 && timeRemaining % 5 === 0) {
+      audio.tick()
+    }
+
     // 마지막 3초 시각적 강조 (work/rest)
     if ((phase === 'work' || phase === 'rest') && timeRemaining <= 3 && timeRemaining > 0) {
       timerNumber.classList.add('countdown-warn')
