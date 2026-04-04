@@ -1120,6 +1120,19 @@ input:focus-visible {
   opacity: 0.6;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+.feedback-link {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.feedback-link:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 /* ── Sprint 12: 언어 선택 드롭다운 ── */
