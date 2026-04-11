@@ -1454,6 +1454,25 @@ input:focus-visible {
   padding: 2px 0;
 }
 
+/* ── AdSense 광고 컨테이너 ── */
+.ad-container {
+  margin: 16px 0;
+  text-align: center;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.ad-container ins {
+  background: transparent;
+}
+/* 다크 모드: 광고 주변 배경 처리 */
+.ad-container {
+  background: rgba(255,255,255,0.03);
+}
+.light-theme .ad-container {
+  background: rgba(0,0,0,0.02);
+}
+
 /* ── Google Sheets 연동 ── */
 .google-sync {
   margin-top: 12px;

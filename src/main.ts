@@ -8,6 +8,7 @@ import { PRESETS } from './presets'
 import { APP_VERSION } from './version'
 import { t, initI18n, setLanguage, getCurrentLang, DATE_LOCALE, type Lang } from './i18n'
 import { analytics } from './analytics'
+import { insertAd } from './ads'
 import { signIn, signOut, isSignedIn, appendWorkout, fetchWorkouts, syncLocalToSheets, type WorkoutRow } from './google-sheets'
 
 // ── DOM 요소 ────────────────────────────────────────────
@@ -570,6 +571,9 @@ function showSummaryCard(rounds: number, durationSeconds: number, workDuration: 
     ${getNextPresetSuggestion()}
   `
   summaryCard.classList.add('visible')
+
+  // 완료 카드 광고 (DOM API — innerHTML 안 됨)
+  insertAd(summaryCard, { slot: '9352945714', format: 'rectangle' })
 
   // Feature B: 공유 버튼 이벤트
   const btnShare = document.getElementById('btn-share-workout') as HTMLButtonElement | null
@@ -2220,6 +2224,10 @@ function init(): void {
 
   // Sprint 9 Feature E: 앱 버전 표시
   appVersionLabel.textContent = APP_VERSION
+
+  // SEO 영역 광고
+  const adSeo = document.getElementById('ad-seo')
+  if (adSeo) insertAd(adSeo, { slot: '2154767539', format: 'horizontal', style: 'display:block; text-align:center;' })
 
   // Sprint 24: URL 파라미터 처리 (PWA shortcuts)
   const urlParams = new URLSearchParams(window.location.search)

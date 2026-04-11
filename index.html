@@ -85,11 +85,7 @@
         g.src = 'https://www.googletagmanager.com/gtag/js?id=G-N7XC3N6MFS';
         g.async = true;
         document.head.appendChild(g);
-        var a = document.createElement('script');
-        a.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1826213634854387';
-        a.async = true;
-        a.crossOrigin = 'anonymous';
-        document.head.appendChild(a);
+        // AdSense는 src/ads.ts에서 필요 시점에 로드
       }, 2000);
     });
   </script>
@@ -357,6 +353,9 @@
     <li data-i18n="seo.why4">8가지 과학 기반 프리셋 제공</li>
     <li data-i18n="seo.why5">음성 안내로 화면을 보지 않아도 OK</li>
   </ul>
+
+  <!-- AdSense: SEO 영역 배너 -->
+  <div id="ad-seo" class="ad-container"></div>
 
   <h3 data-i18n="seo.faqTitle">자주 묻는 질문</h3>
   <details>
